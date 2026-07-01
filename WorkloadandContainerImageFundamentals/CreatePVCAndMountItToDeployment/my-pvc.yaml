@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: log-storage # This is the name the Deployment will reference
+spec:
+  # Define the access mode: ReadWriteOnce means the volume can be mounted 
+  # as read-write by a single node (which is sufficient for this simple demo).
+  accessModes:
+    - ReadWriteOnce
+  # Define the StorageClass. We omit this to use the default one,
+  # which is what Docker Desktop and most local K8s environments provide.
+  # storageClassName: standard 
+  resources:
+    requests:
+      storage: 1Gi # Requesting 1 Gigabyte of storage

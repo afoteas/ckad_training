@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logging-sidecar-demo
+  labels:
+    app: sidecar-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidecar-demo
+  template:
+    metadata:
+      labels:
+        app: sidecar-demo
+    spec:
+      # 1. Define the shared volume (emptyDir is a temporary, local directory)
+      volumes:
+      - name: shared-log-dir
+        emptyDir: {}
+        
+      containers:
+      
+      # 2. CONTAINER 1: THE MAIN APPLICATION (Log Writer)
+      - name: main-app
+        image: busybox:latest # Small, standard image
+        # Command to continuously write a timestamped log entry to the shared volume
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          while true; do
+            echo "$(date '+%Y-%m-%d %H:%M:%S'): User login successful for ID $RANDOM" >> /mnt/logs/app.log
+            sleep 1
+          done
+        
+        # Mount the volume where the app will write its logs
+        volumeMounts:
+        - name: shared-log-dir
+          mountPath: /mnt/logs 
+      
+      # 3. CONTAINER 2: THE SIDECAR (Log Collector/Reader)
+      - name: log-collector
+        image: busybox:latest # Small, standard image
+        # BusyBox doesn't provide /usr/bin/tail; use /bin/sh and tail after ensuring file exists
+        command: ["/bin/sh", "-c"]
+        args: ["touch /mnt/logs/app.log && tail -f /mnt/logs/app.log"]
+        
+        # Mount the same volume so the sidecar can read the logs
+        volumeMounts:
+        - name: shared-log-dir
+          mountPath: /mnt/logs

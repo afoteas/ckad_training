@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: csi-ephemeral-demo
+  labels:
+    app: csi-ephemeral-demo
+spec:
+  containers:
+  - name: app
+    image: busybox:latest
+    command: ["/bin/sh", "-c"]
+    args:
+    - |
+      echo "Listing /data from CSI ephemeral volume"
+      ls -la /data
+      sleep 3600
+    volumeMounts:
+    - name: csi-ephemeral-vol
+      mountPath: /data
+  volumes:
+  - name: csi-ephemeral-vol
+    ephemeral:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

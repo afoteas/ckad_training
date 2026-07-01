@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stateful-app-demo
+  labels:
+    app: stateful-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stateful-app
+  template:
+    metadata:
+      labels:
+        app: stateful-app
+    spec:
+      containers:
+      - name: main-worker
+        image: busybox:latest
+        # The command writes the Pod's name to a file on the mounted volume 
+        # and then sleeps indefinitely to keep the container running.
+        # If the file already exists (i.e., the Pod was restarted), it prints a persistence message.
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          if [ -f /data/app_state.txt ]; then
+            echo "--- Persistence Confirmed! ---"
+            echo "Data found from a previous run."
+            cat /data/app_state.txt
+          else
+            echo "--- Writing NEW Data ---"
+            echo "This Pod ($(hostname)) created this file." > /data/app_state.txt
+            echo "Initial setup complete."
+          fi
+          tail -f /dev/null # Keep container running
+          
+        # 3. Mount the PVC inside the container
+        volumeMounts:
+        - name: persistent-storage-volume
+          mountPath: /data # The data will be written here (e.g., /data/app_state.txt)
+          
+      # 4. Link the Pod to the PVC
+      volumes:
+      - name: persistent-storage-volume
+        persistentVolumeClaim:
+          claimName: log-storage # Must match the name defined in my-pvc.yaml

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-service
+  labels:
+    app: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        version: v1.0
+    spec:
+      containers:
+      - name: api-container
+        image: nginx:1.25.1 # Known working version (v1.0)
+        ports:
+        - containerPort: 80

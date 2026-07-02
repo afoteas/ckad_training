@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-gateway
+spec:
+  type: NodePort      # External access for clear testing
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30090
+  selector:
+    app: color-app
+    version: blue   # <-- Initial selector targets the 'blue' Pods
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: color-app
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: color-app
+        version: blue  # <-- Pod label 1
+    spec:
+      containers:
+      - name: nginx-blue
+        image: nginx:alpine
+        # Use a simple command to create a custom index.html for visualization
+        command: ["/bin/sh", "-c"]
+        args: ["echo '<h1>Welcome to BLUE - Version 1.0 </h1>' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]
+        ports:
+        - containerPort: 80

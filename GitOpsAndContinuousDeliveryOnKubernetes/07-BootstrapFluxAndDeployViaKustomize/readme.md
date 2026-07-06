@@ -44,7 +44,7 @@ flux bootstrap github \
   --owner afoteas \
   --repository ckad_training \
   --branch main \
-  --path GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/flux-system \
+  --path GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize \
   --personal
 
 flux get sources git -A

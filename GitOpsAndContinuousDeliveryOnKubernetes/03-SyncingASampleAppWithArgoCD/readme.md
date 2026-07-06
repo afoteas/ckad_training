@@ -64,16 +64,18 @@ argocd repo add https://github.com/OWNER/REPO.git
 For a private repo (HTTPS + PAT):
 
 ```bash
-argocd repo add https://github.com/OWNER/REPO.git \
-  --username YOUR_GITHUB_USERNAME \
-  --password YOUR_GITHUB_PAT
+export GITHUB_PAT="YOUR_GITHUB_PAT"
+
+argocd repo add https://github.com/afoteas/ckad_training.git \
+  --username afoteas \
+  --password "$GITHUB_PAT"
 ```
 
 ### 3. Create and sync the Application
 
 ```bash
 argocd app create ckad-sample \
-  --repo https://github.com/OWNER/REPO.git \
+  --repo https://github.com/afoteas/ckad_training.git \
   --path WorkloadandContainerImageFundamentals/CreatePVCAndMountItToDeployment \
   --revision main \
   --dest-server https://kubernetes.default.svc \
@@ -89,8 +91,29 @@ argocd app get ckad-sample
 argocd app set ckad-sample --sync-policy automated --self-heal --auto-prune
 ```
 
+### 5. Delete the Application
+
+Delete app and all resources it created:
+
+```bash
+argocd app delete ckad-sample --cascade --yes
+```
+
+Delete only the Argo CD Application object and keep deployed resources:
+
+```bash
+argocd app delete ckad-sample --cascade=false --yes
+```
+
+Quick check:
+
+```bash
+argocd app list
+```
+
 ## Notes
 
 - You no longer need local hostPath mounts when using GitHub.
 - Keep credentials out of shell history when using private repos.
 - If your default branch is not `main`, replace `--revision main` with the correct branch.
+- If your organization uses TLS interception (for example Zscaler), add the corporate root CA to Argo CD before adding HTTPS repos.

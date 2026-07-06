@@ -85,15 +85,8 @@ Created app manifests in this lesson:
 Create Flux source and Kustomization directly (no clusters folder needed):
 
 ```bash
-flux create source git ckad-training-repo \
-  --url=ssh://git@github.com/afoteas/ckad_training \
-  --secret-ref=flux-system \
-  --branch=main \
-  --interval=1m \
-  --export | kubectl apply -f -
-
 flux create kustomization guestbook-dev \
-  --source=GitRepository/ckad-training-repo \
+  --source=GitRepository/flux-system \
   --path=./GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev \
   --prune=true \
   --interval=5m \
@@ -101,18 +94,17 @@ flux create kustomization guestbook-dev \
   --export | kubectl apply -f -
 ```
 
-If you want to remove the custom GitRepository and use only the bootstrap-created SSH source, delete it first:
+Create the target namespace before reconciling:
 
 ```bash
-kubectl delete gitrepository ckad-training-repo -n flux-system --ignore-not-found=true
+kubectl create namespace guestbook-dev --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Then point your Kustomization at the existing SSH source named `flux-system`.
+Then use the existing bootstrap-created SSH source named `flux-system`.
 
 Apply and verify:
 
 ```bash
-flux reconcile source git ckad-training-repo -n flux-system
 flux reconcile kustomization guestbook-dev -n flux-system
 kubectl get kustomizations -n flux-system
 kubectl get deploy,svc -n guestbook-dev

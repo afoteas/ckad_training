@@ -55,11 +55,6 @@ WorkloadandContainerImageFundamentals/CreatePVCAndMountItToDeployment
 
 ### 2. Register the GitHub repository in Argo CD
 
-For a public repo:
-
-```bash
-argocd repo add https://github.com/OWNER/REPO.git
-```
 
 For a private repo (HTTPS + PAT):
 
@@ -68,7 +63,8 @@ export GITHUB_PAT="YOUR_GITHUB_PAT"
 
 argocd repo add https://github.com/afoteas/ckad_training.git \
   --username afoteas \
-  --password "$GITHUB_PAT"
+  --password "$GITHUB_PAT" \
+  --insecure-skip-server-verification
 ```
 
 ### 3. Create and sync the Application

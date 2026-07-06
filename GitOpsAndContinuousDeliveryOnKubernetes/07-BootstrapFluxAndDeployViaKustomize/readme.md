@@ -11,6 +11,21 @@ Bootstrapping Flux installs controllers and wires your cluster to a Git reposito
 - Repository structure determines maintainability as scale grows.
 - PR-driven updates become the default change path after bootstrap.
 
+## Install Flux CLI (Linux)
+
+```bash
+curl -s https://fluxcd.io/install.sh | sudo bash
+flux --version
+flux check --pre
+```
+
+If you do not have cluster access configured yet, ensure your kube context works first:
+
+```bash
+kubectl config current-context
+kubectl get nodes
+```
+
 ## Typical Bootstrap Steps
 
 1. Install flux CLI locally.
@@ -22,10 +37,75 @@ Bootstrapping Flux installs controllers and wires your cluster to a Git reposito
 
 ## Example Commands
 
+```bash
 flux check
-flux bootstrap github --owner YOUR_ORG --repository YOUR_REPO --branch main --path clusters/dev --personal
-flux get kustomizations -A
+export GITHUB_TOKEN=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
+flux bootstrap github \
+  --owner afoteas \
+  --repository ckad_training \
+  --branch main \
+  --path GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev \
+  --personal
+
 flux get sources git -A
+flux get kustomizations -A
+```
+
+## Example Base and Overlays
+
+Minimal structure:
+
+```text
+repo/
+  apps/
+    guestbook/
+      base/
+        deployment.yaml
+        service.yaml
+        kustomization.yaml
+      overlays/
+        dev/
+          kustomization.yaml
+          patch-replicas.yaml
+        prod/
+          kustomization.yaml
+          patch-replicas.yaml
+  clusters/
+    dev/
+      flux-system/
+      guestbook-kustomization.yaml
+```
+
+Created manifests in this lesson:
+
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/kustomization.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/deployment.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/deployment.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/service.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/service.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/kustomization.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/patch-replicas.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/patch-replicas.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/kustomization.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/patch-replicas.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/patch-replicas.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-source.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-source.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-kustomization.yaml)
+- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/kustomization.yaml)
+
+## Apps vs Clusters
+
+- apps contains reusable application manifests: base definitions and environment overlays.
+- clusters contains cluster-specific Flux entrypoints: GitRepository and Kustomization objects that tell Flux what to apply.
+- apps answers what should run.
+- clusters answers where and how reconciliation happens.
+- One app can be reused by many clusters or environments by creating multiple cluster Kustomization objects that point to different overlays.
+
+Apply and verify:
+
+```bash
+kubectl apply -k GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev
+flux reconcile source git ckad-training-repo -n flux-system
+flux reconcile kustomization guestbook-dev -n flux-system
+kubectl get kustomizations -n flux-system
+kubectl get deploy,svc -n guestbook-dev
+```
 
 ## Practical Tips
 

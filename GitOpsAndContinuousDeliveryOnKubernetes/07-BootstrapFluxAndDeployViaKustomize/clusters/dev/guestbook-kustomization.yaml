@@ -1,0 +1,15 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: guestbook-dev
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: ckad-training-repo
+  path: ./GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev
+  prune: true
+  wait: true
+  timeout: 2m
+  targetNamespace: guestbook-dev

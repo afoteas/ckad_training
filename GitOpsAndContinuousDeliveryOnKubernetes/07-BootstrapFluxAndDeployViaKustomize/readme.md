@@ -30,9 +30,9 @@ kubectl get nodes
 
 1. Install flux CLI locally.
 2. Authenticate to Git provider.
-3. Bootstrap Flux to target repo and branch.
+3. Bootstrap Flux controllers.
 4. Add app base and overlays.
-5. Commit and push.
+5. Create Flux source and kustomization.
 6. Verify reconciliation.
 
 ## Example Commands
@@ -44,7 +44,7 @@ flux bootstrap github \
   --owner afoteas \
   --repository ckad_training \
   --branch main \
-  --path GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev \
+  --path flux-system \
   --personal
 
 flux get sources git -A
@@ -70,13 +70,9 @@ repo/
         prod/
           kustomization.yaml
           patch-replicas.yaml
-  clusters/
-    dev/
-      flux-system/
-      guestbook-kustomization.yaml
 ```
 
-Created manifests in this lesson:
+Created app manifests in this lesson:
 
 - [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/kustomization.yaml)
 - [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/deployment.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/base/deployment.yaml)
@@ -85,22 +81,28 @@ Created manifests in this lesson:
 - [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/patch-replicas.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev/patch-replicas.yaml)
 - [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/kustomization.yaml)
 - [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/patch-replicas.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/prod/patch-replicas.yaml)
-- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-source.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-source.yaml)
-- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/guestbook-kustomization.yaml)
-- [GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/kustomization.yaml](GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev/kustomization.yaml)
 
-## Apps vs Clusters
+Create Flux source and Kustomization directly (no clusters folder needed):
 
-- apps contains reusable application manifests: base definitions and environment overlays.
-- clusters contains cluster-specific Flux entrypoints: GitRepository and Kustomization objects that tell Flux what to apply.
-- apps answers what should run.
-- clusters answers where and how reconciliation happens.
-- One app can be reused by many clusters or environments by creating multiple cluster Kustomization objects that point to different overlays.
+```bash
+flux create source git ckad-training-repo \
+  --url=https://github.com/afoteas/ckad_training.git \
+  --branch=main \
+  --interval=1m \
+  --export | kubectl apply -f -
+
+flux create kustomization guestbook-dev \
+  --source=GitRepository/ckad-training-repo \
+  --path=./GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/apps/guestbook/overlays/dev \
+  --prune=true \
+  --interval=5m \
+  --target-namespace=guestbook-dev \
+  --export | kubectl apply -f -
+```
 
 Apply and verify:
 
 ```bash
-kubectl apply -k GitOpsAndContinuousDeliveryOnKubernetes/07-BootstrapFluxAndDeployViaKustomize/clusters/dev
 flux reconcile source git ckad-training-repo -n flux-system
 flux reconcile kustomization guestbook-dev -n flux-system
 kubectl get kustomizations -n flux-system

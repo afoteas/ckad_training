@@ -1,0 +1,24 @@
+# Additional Argo CD Helm values for health-check and rollback-focused labs
+# Use this together with the base values from section 02.
+
+server:
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+    nodePortHttps: 30443
+
+configs:
+  params:
+    server.insecure: true # Local lab only
+
+controller:
+  metrics:
+    enabled: true
+
+repoServer:
+  metrics:
+    enabled: true
+
+applicationSet:
+  metrics:
+    enabled: true

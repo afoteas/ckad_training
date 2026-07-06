@@ -86,7 +86,8 @@ Create Flux source and Kustomization directly (no clusters folder needed):
 
 ```bash
 flux create source git ckad-training-repo \
-  --url=https://github.com/afoteas/ckad_training.git \
+  --url=ssh://git@github.com/afoteas/ckad_training \
+  --secret-ref=flux-system \
   --branch=main \
   --interval=1m \
   --export | kubectl apply -f -
@@ -99,6 +100,14 @@ flux create kustomization guestbook-dev \
   --target-namespace=guestbook-dev \
   --export | kubectl apply -f -
 ```
+
+If you want to remove the custom GitRepository and use only the bootstrap-created SSH source, delete it first:
+
+```bash
+kubectl delete gitrepository ckad-training-repo -n flux-system --ignore-not-found=true
+```
+
+Then point your Kustomization at the existing SSH source named `flux-system`.
 
 Apply and verify:
 

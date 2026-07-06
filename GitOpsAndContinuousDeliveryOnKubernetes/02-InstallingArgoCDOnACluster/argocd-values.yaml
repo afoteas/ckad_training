@@ -1,0 +1,9 @@
+server:
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+    nodePortHttps: 30443
+
+configs:
+  params:
+    server.insecure: true # For local development only

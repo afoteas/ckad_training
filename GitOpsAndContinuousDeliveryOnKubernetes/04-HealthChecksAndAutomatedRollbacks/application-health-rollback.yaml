@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/foteas/ckad_training.git
+    repoURL: https://github.com/afoteas/ckad_training.git
     targetRevision: main
     path: WorkloadandContainerImageFundamentals/CreatePVCAndMountItToDeployment
   destination:

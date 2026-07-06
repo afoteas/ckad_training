@@ -11,7 +11,7 @@ spec:
     command: ["/bin/sh", "-c"]
     args:
     - |
-      echo "hello from emptyDir" > /cache/msg.txt
+      echo "hello from emptyDir test 2" > /cache/msg.txt
       echo "wrote /cache/msg.txt"
       sleep 3600
     volumeMounts:

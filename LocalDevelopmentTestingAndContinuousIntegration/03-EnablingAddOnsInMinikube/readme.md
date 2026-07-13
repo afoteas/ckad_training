@@ -1,68 +1,194 @@
-# Enabling Add-Ons in minikube
+# Enabling Ingress and Metrics Server (minikube and kind)
 
-This guide shows how to enable and manage minikube addons for enhanced local development capabilities.
+This guide covers both local-cluster paths for the same goal:
 
-## Overview
+- Ingress NGINX for HTTP routing
+- Metrics Server for CPU and memory metrics
 
-minikube includes built-in addons that extend Kubernetes functionality with components like Ingress, metrics collection, and storage provisioning.
+## Why These Components Matter
 
-## Starting minikube with Resources
+Ingress routes external HTTP/HTTPS requests to Services using host and path rules.
+
+Metrics Server collects resource metrics from kubelets and enables:
+
+- kubectl top nodes
+- kubectl top pods
+- HPA metric input
+
+## Quick Difference: minikube vs kind
+
+- minikube: built-in addon commands
+- kind: install the same components via manifests
+
+Both are valid for local Kubernetes practice.
+
+## A) minikube Workflow
+
+### 1) Start or select your minikube profile
 
 ```bash
-# Start minikube with increased resources
-minikube start --cpus=4 --memory=8192 --disk-size=20g
+minikube start -p mini-ckad --driver=docker --cpus=2 --memory=4096
+kubectl config use-context mini-ckad
 ```
 
-## Common Addons
+### 2) Enable Ingress and Metrics Server addons
 
-### Ingress Controller
 ```bash
-minikube addons enable ingress
-minikube addons status | grep ingress
+minikube addons enable ingress -p mini-ckad
+minikube addons enable metrics-server -p mini-ckad
 ```
 
-### Metrics Server (for HPA/monitoring)
+### 3) Verify readiness
+
 ```bash
-minikube addons enable metrics-server
+kubectl get pods -n ingress-nginx
 kubectl get pods -n kube-system | grep metrics-server
+kubectl top nodes
+kubectl top pods -A
 ```
 
-### Dashboard
-```bash
-minikube addons enable dashboard
-minikube dashboard
-```
+## B) kind Workflow
 
-### Storage Provisioner
-```bash
-minikube addons enable storage-provisioner
-minikube addons enable default-storageclass
-```
+### 1) Create a kind cluster with ingress-friendly port mappings
 
-## Verify Addon Health
+Use the provided file: `kind-ingress-config.yaml`
+
+Create and select context:
 
 ```bash
-# Check all addon pods
-kubectl get pods -n kube-system
-
-# Check specific addon status
-minikube addons list
-minikube addons status ingress
+kind create cluster --name local-dev --config kind-ingress-config.yaml
+kubectl config use-context kind-local-dev
+kubectl get nodes
 ```
 
-## Disable Addons
+### 2) Install Ingress NGINX (kind provider manifest)
 
 ```bash
-minikube addons disable <addon-name>
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 ```
 
-## Best Practices
-
-1. Enable only addons you need to save resources
-2. Wait for addon pods to be ready before testing
-3. Check logs if addon pods are not running
-4. Restart minikube if addons don't activate properly
+Wait for controller readiness:
 
 ```bash
-minikube restart
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=180s
 ```
+
+### 3) Install Metrics Server
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+Patch for common kind self-signed kubelet cert behavior:
+
+```bash
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+```
+
+Validate metrics:
+
+```bash
+kubectl top nodes
+kubectl top pods -A
+```
+
+## C) Sample Ingress Test
+
+Apply the provided sample manifest file: `ingress-app.yaml`
+
+```bash
+kubectl apply -f ingress-app.yaml
+kubectl get ingress
+kubectl get svc
+```
+
+For minikube, test through the minikube node IP:
+
+```bash
+curl http://$(minikube ip -p mini-ckad)/hello
+```
+
+For kind, use port-forward if localhost path testing does not respond immediately:
+
+```bash
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
+```
+
+Then from another terminal:
+
+```bash
+curl http://localhost:8080/hello
+```
+
+## D) Validation Checklist
+
+```bash
+kubectl config current-context
+kubectl get pods -n ingress-nginx
+kubectl get pods -n kube-system | grep metrics-server
+kubectl top nodes
+kubectl top pods -A
+kubectl describe ingress
+```
+
+## E) Access from Windows Host (when running cluster in WSL)
+
+In many WSL2 setups, the minikube node IP is reachable inside WSL but not directly from Windows routing.
+
+### 1) Validate from WSL first
+
+```bash
+minikube ip -p mini-ckad
+curl http://$(minikube ip -p mini-ckad)/hello
+```
+
+### 2) Get a reachable URL via minikube service helper
+
+```bash
+minikube service hello-ingress --url -p mini-ckad
+```
+
+Open the printed URL from Windows browser.
+
+### 3) Optional fallback: explicit port-forward
+
+```bash
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8081:80 --address 0.0.0.0
+```
+
+Then open:
+
+```text
+http://localhost:8080/hello
+```
+
+### 4) Optional LoadBalancer-style test
+
+```bash
+minikube tunnel -p mini-ckad
+kubectl get svc
+```
+
+Use the external IP shown for LoadBalancer services.
+
+## Troubleshooting
+
+- Metrics API not available:
+  - wait 30 to 90 seconds
+  - check metrics-server pod status and logs
+- Empty reply from Ingress route:
+  - ensure ingress controller pod is Ready
+  - on kind, use the port-forward command above
+- Wrong cluster behavior:
+  - verify context before every test: kubectl config current-context
+
+## Key Takeaway
+
+Ingress and Metrics Server are supported in both minikube and kind.
+
+- minikube: easiest path via addons
+- kind: explicit manifest-based install, often closer to production-style setup steps

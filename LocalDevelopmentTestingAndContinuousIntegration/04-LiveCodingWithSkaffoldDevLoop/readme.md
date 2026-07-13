@@ -84,6 +84,27 @@ What this config does:
 - `deploy.kubectl.manifests` applies Kubernetes manifests from the `k8s` folder
 - Skaffold orchestrates build, push, and deploy as one continuous workflow
 
+## Example Skaffold Config (Minimal, as shown in lesson slides)
+
+```yaml
+apiVersion: skaffold/v2beta29
+kind: Config
+build:
+  artifacts:
+    - image: myapp
+      context: .
+deploy:
+  kubectl:
+    manifests:
+      - k8s/*
+```
+
+What this minimal config highlights:
+
+- defines image build artifacts
+- specifies deployment manifest source
+- lets Skaffold orchestrate the dev loop directly from configuration
+
 ## Typical Commands
 
 ```bash

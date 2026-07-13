@@ -1,10 +1,32 @@
 # Live Coding with Skaffold Dev Loop
 
-This guide demonstrates how to use Skaffold for rapid, iterative development with automatic build and deploy cycles.
+This guide shows how Skaffold shortens the Kubernetes development feedback loop by automating build, push, and deploy on every code change.
 
-## Overview
+## Why This Matters
 
-Skaffold automates the workflow of building, pushing, and deploying your application whenever you save code changes. This enables a true "code → save → test" loop.
+In a manual workflow, each small change often requires:
+
+- rebuilding an image
+- pushing the image to a registry
+- redeploying with kubectl
+
+That cycle is slow and interrupts experimentation.
+
+Skaffold solves this by continuously watching your source and automating the loop so you get near-instant iteration.
+
+## What Skaffold Is
+
+Skaffold is an open-source Kubernetes development tool that automates repetitive tasks:
+
+- image build
+- image push
+- manifest deployment
+
+It supports multiple builders, including:
+
+- Docker
+- Kaniko
+- Buildpacks
 
 ## Installation
 
@@ -15,54 +37,76 @@ chmod +x skaffold
 sudo mv skaffold /usr/local/bin/
 ```
 
-## Initialize Skaffold
+## Prerequisites
+
+- A running Kubernetes cluster (kind or minikube)
+- kubectl configured for that cluster
+- Container registry access when push is required
+
+## Core Command
 
 ```bash
-# Create a skaffold.yaml configuration
-skaffold init
-
-# Or create manually in your project root
-touch skaffold.yaml
+# Run from your project directory
+skaffold dev
 ```
 
-## Basic Configuration
+When running in dev mode, Skaffold watches source files and automatically rebuilds and redeploys after each code change.
+
+## Dev Loop Workflow
+
+1. Start `skaffold dev` in the project directory.
+2. Skaffold watches source files.
+3. On change, Skaffold rebuilds the image.
+4. Skaffold updates the Kubernetes deployment.
+5. You see live status/log feedback and iterate again.
+
+## Example skaffold.yaml
 
 ```yaml
 apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
-  name: my-app
+  name: myapp
 build:
   artifacts:
-  - image: my-app
+    - image: myapp
     docker:
       dockerfile: Dockerfile
 deploy:
-  kubectl: {}
+  kubectl:
+    manifests:
+      - k8s/*.yaml
 ```
 
-## Run Dev Loop
+What this config does:
+
+- `build.artifacts` defines the image to build from the current project
+- `deploy.kubectl.manifests` applies Kubernetes manifests from the `k8s` folder
+- Skaffold orchestrates build, push, and deploy as one continuous workflow
+
+## Typical Commands
 
 ```bash
-# Start continuous build/deploy/log
+# Start continuous build/deploy/watch loop
 skaffold dev
 
-# With file-sync and specific port forwarding
+# Optional: enable automatic port-forwarding for local testing
 skaffold dev --port-forward
 ```
 
-## Dev Loop Workflow
-
-1. Skaffold watches your local files
-2. On save, automatically rebuilds container image
-3. Deploys updated image to cluster
-4. Streams logs to your terminal
-5. Ready for next iteration
-
 ## Benefits
 
-- Instant feedback on code changes
-- No manual kubectl apply commands
-- Automatic image rebuilds
-- Live container logs in terminal
-- Perfect for rapid prototyping
+- Faster developer feedback cycles
+- Less manual toil (fewer repeated kubectl/build commands)
+- Works with local and remote Kubernetes clusters
+- Consistent workflow for kind and minikube
+
+## Trade-Offs and Considerations
+
+- Repeated image updates may require frequent registry pushes
+- Large projects can consume more CPU and memory during rapid rebuilds
+- You should still monitor resource use while developing
+
+## Key Takeaway
+
+Use Skaffold when you want fast, automated Kubernetes development with minimal manual redeploy work and tight feedback loops.

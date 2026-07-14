@@ -11,6 +11,8 @@ This module focuses on practical Kubernetes and container fundamentals used in r
 - perform rolling updates safely with Deployments
 - design and run multicontainer pod patterns
 - implement a sidecar logging pattern
+- understand Pod volume types and lifecycle behavior
+- create and mount PVC-backed storage in a Deployment
 
 ## Lesson Order
 
@@ -21,13 +23,16 @@ This module focuses on practical Kubernetes and container fundamentals used in r
 5. `05-ImplementingRollingUpdatesWithDeployments`
 6. `06-MulticontainerPodPatterns`
 7. `07-DeployingASidecarLoggingPattern`
+8. `08-VolumesInPods`
+9. `09-CreatingAPVCAndMountingItInADeployment`
 
 ## Suggested Flow
 
 1. Start with image standards and optimization.
 2. Move to registry workflows and scanning.
 3. Continue with Kubernetes workload design and rollout behavior.
-4. Finish with multicontainer and sidecar patterns.
+4. Continue with multicontainer and sidecar patterns.
+5. Finish with Pod volume models and persistent storage integration.
 
 ## Objectives
 

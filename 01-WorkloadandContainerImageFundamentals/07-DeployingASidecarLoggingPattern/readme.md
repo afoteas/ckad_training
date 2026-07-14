@@ -1,53 +1,69 @@
-# Sidecar for Logging
-```
+# Deploying a Sidecar Logging Pattern
+
+This lesson demonstrates the sidecar logging pattern, where a dedicated helper container collects and forwards logs from the main application container.
+
+## Why Use a Logging Sidecar
+
+The main app should focus on business logic, not shipping logs to external systems. A sidecar container handles log collection separately.
+
+Benefits:
+
+- separation of concerns
+- reusable logging agent logic
+- independent updates for log pipeline behavior
+
+## Pattern Architecture
+
+Inside one Pod:
+
+1. main app writes logs to a shared volume
+2. sidecar tails the same file from shared volume
+3. sidecar forwards entries to external logging backend
+
+Shared bridge is typically an `emptyDir` mounted in both containers.
+
+## Apply the Demo
+
+```bash
 kubectl apply -f sidecar-deployment.yaml
+kubectl rollout status deployment/logging-sidecar-demo
+kubectl get pods -l app=sidecar-demo
 ```
 
-## What I did
-
-### 1. Reproduced and inspected the failure
-I first checked pod status and saw one container failing (`1/2 RunContainerError`).
+## Verify Log Flow
 
 ```bash
-kubectl get pods
+kubectl logs deployment/logging-sidecar-demo -c log-collector --tail=20
+kubectl logs deployment/logging-sidecar-demo -c main-app --tail=20
 ```
 
-Then I inspected the failing pod events and container state:
+Both outputs should show coordinated activity through the shared log file path.
 
-```bash
-kubectl describe pod logging-sidecar-demo-7cf695b57-n6pmj
-```
+## Common Failure and Fix
 
-Root cause from `describe` output:
+One observed failure in this demo was:
 
 ```text
 exec: "/usr/bin/tail": stat /usr/bin/tail: no such file or directory
 ```
 
-I also checked previous sidecar logs:
+Cause: BusyBox image does not provide `tail` at `/usr/bin/tail`.
 
-```bash
-kubectl logs logging-sidecar-demo-7cf695b57-n6pmj -c log-collector --previous
-```
-
-### 2. Fix applied in manifest
-The sidecar was using `/usr/bin/tail`, which does not exist in `busybox:latest`.
-I changed the sidecar command to run via `/bin/sh -c` and tail the shared log file safely:
+Safe fix used:
 
 ```yaml
 command: ["/bin/sh", "-c"]
 args: ["touch /mnt/logs/app.log && tail -f /mnt/logs/app.log"]
 ```
 
-### 3. Applied and verified
+## Debug Commands
 
 ```bash
-kubectl apply -f ./sidecar-deployment.yaml
-kubectl rollout status deployment/logging-sidecar-demo
-kubectl get pods -l app=sidecar-demo -o wide
-kubectl logs deployment/logging-sidecar-demo -c log-collector --tail=5
+kubectl get pods
+kubectl describe pod <pod-name>
+kubectl logs <pod-name> -c log-collector --previous
 ```
 
-Verification result:
-- New pod became `2/2 Running`.
-- Sidecar logs showed live entries from `/mnt/logs/app.log`.
+## Summary
+
+The sidecar logging pattern is a practical Kubernetes design for centralized log collection without embedding operational logging logic directly in application code.

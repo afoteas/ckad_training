@@ -1,131 +1,78 @@
-# PVC, EmptyDir, and Ephemeral Storage Examples
+# Choose the Right Workload Resources
 
-## Overview
-This folder covers three storage patterns in Kubernetes:
+This lesson explains how to select the correct Kubernetes workload resource based on execution model, fault tolerance needs, and lifecycle behavior.
 
-| File | Type | Lifetime | Use case |
-|---|---|---|---|
-| `emptydir-pod.yaml` | `emptyDir` | Pod lifetime | Scratch space, caches |
-| `csi-ephemeral-pod.yaml` | Inline ephemeral PVC | Pod lifetime | Dynamic provisioned scratch |
-| `my-pvc.yaml` + `app-deployment.yaml` | PersistentVolumeClaim | Beyond pod lifetime | State that survives restarts |
+## Workload Resource Selection
 
----
+### Pod
 
-## 1. EmptyDir — pod-scoped scratch storage
+Use directly only for short-lived debugging or one-off tasks.
 
-`emptyDir` is created when a pod is scheduled and deleted when the pod is removed.
-Data is lost if the pod restarts or is deleted.
+Pods by themselves have no controller-based self-healing or scaling.
 
-```bash
-kubectl apply -f emptydir-pod.yaml
-kubectl get pod emptydir-demo
-kubectl exec -it emptydir-demo -- cat /cache/msg.txt
-```
-Expected output: `hello from emptyDir`
+### Deployment
 
-Cleanup:
-```bash
-kubectl delete -f emptydir-pod.yaml
-```
+Use for long-running stateless services that need scaling, rolling updates, and rollback support.
 
----
+Typical examples:
 
-## 2. Inline Ephemeral Volume (PVC-backed, pod lifetime)
+- web frontends
+- REST APIs
+- stateless microservices
 
-Uses `volumes[].ephemeral.volumeClaimTemplate` — Kubernetes dynamically provisions a PVC
-for the pod and deletes it when the pod is removed. This requires a default StorageClass.
+### Job
 
-```bash
-kubectl apply -f csi-ephemeral-pod.yaml
-kubectl wait --for=condition=Ready pod/csi-ephemeral-demo --timeout=90s
-kubectl get pod csi-ephemeral-demo
-kubectl logs csi-ephemeral-demo --tail=5
-```
+Use for finite tasks that must complete successfully.
 
-Verify the auto-created PVC (named after the pod):
-```bash
-kubectl get pvc | grep csi-ephemeral-demo
-```
+Typical examples:
 
-Cleanup (also deletes the auto-provisioned PVC):
-```bash
-kubectl delete -f csi-ephemeral-pod.yaml
-```
+- migration script
+- batch processing
+- data export/import
 
-### Why a plain inline CSI volume does not work here
+### CronJob
 
-An earlier version used:
-```yaml
-volumes:
-  - name: csi-ephemeral-vol
-    csi:
-      driver: example.csi.k8s.io
-```
-That driver name is a placeholder — no CSI driver with that name is registered in a
-standard Docker Desktop cluster. The pod would hang in `ContainerCreating` with a
-`FailedMount` event.
+Use when Jobs must run on a schedule.
 
-To confirm which drivers are available:
-```bash
-kubectl get csidrivers
-kubectl describe pod csi-ephemeral-demo   # shows FailedMount in Events
-```
+Typical examples:
 
-The fix is to use `ephemeral.volumeClaimTemplate` instead, which uses the default
-StorageClass (present on Docker Desktop) rather than requiring a specific CSI driver.
+- daily backup
+- hourly report
+- periodic maintenance
 
----
+### DaemonSet
 
-## 3. PersistentVolumeClaim mounted to a Deployment
+Use for one Pod per node behavior.
 
-Data written to the PVC survives pod restarts and rescheduling (within the same node,
-since `accessMode: ReadWriteOnce`). The Deployment checks whether data already exists
-from a previous run to demonstrate persistence.
+Typical examples:
 
-### Create the PVC
-```bash
-kubectl apply -f my-pvc.yaml
-kubectl get pvc log-storage
-```
-The PVC status should show `Bound` once the default StorageClass provisions it.
+- node log agents
+- node metrics exporters
+- node-level networking components
 
-### Deploy the app
-```bash
-kubectl apply -f app-deployment.yaml
-kubectl get pod -l app=stateful-app
-kubectl logs -l app=stateful-app
-```
-First run output: `--- Writing NEW Data ---`
+## Controller Behavior Highlights
 
-### Prove persistence — delete and recreate the pod
-```bash
-kubectl rollout restart deployment/stateful-app-demo
-kubectl logs -l app=stateful-app
-```
-Second run output: `--- Persistence Confirmed! ---`
+- Deployments maintain desired replica count and support rolling updates.
+- Jobs focus on successful completion, not continuous uptime.
+- CronJobs create Jobs based on cron schedule rules.
+- DaemonSets automatically place one Pod on each eligible node.
 
-### Inspect the PVC binding
-```bash
-kubectl describe pvc log-storage
-kubectl get pv
-```
+## Resource Decision Table
 
-### Cleanup
-```bash
-kubectl delete -f app-deployment.yaml
-kubectl delete -f my-pvc.yaml
-```
-Deleting the PVC also releases and deletes the underlying PersistentVolume (default
-`reclaimPolicy: Delete` on Docker Desktop's StorageClass).
+1. Need continuously available stateless service: Deployment.
+2. Need finite task completion: Job.
+3. Need scheduled recurring execution: CronJob.
+4. Need one agent per node: DaemonSet.
+5. Need quick ad-hoc debug run: standalone Pod.
 
----
+## Practical Decision Rules
 
-## Key concepts
+1. Need continuous stateless service: Deployment.
+2. Need task completion once: Job.
+3. Need recurring task: CronJob.
+4. Need one per node: DaemonSet.
+5. Need persistent durable state: pair workload with PVC (covered in lesson 09).
 
-- **emptyDir** — simplest ephemeral storage, no provisioning needed, dies with the pod.
-- **ephemeral volumeClaimTemplate** — PVC-backed but still pod-scoped; useful when you
-  need a real block/file volume temporarily without managing its lifecycle manually.
-- **PVC + Deployment** — decouples storage from the pod; the volume outlives individual
-  pod instances, enabling stateful workloads.
-- `accessModes: ReadWriteOnce` — volume can be mounted read-write by **one node** at a
-  time. Use `ReadWriteMany` (requires a compatible StorageClass) for multi-replica access.
+## Summary
+
+Choosing the correct workload type is foundational for reliability and operational efficiency in Kubernetes. Workload controllers encode intent, and Kubernetes reconciles toward that desired state.

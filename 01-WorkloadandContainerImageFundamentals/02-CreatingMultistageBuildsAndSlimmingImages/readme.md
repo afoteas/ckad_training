@@ -1,99 +1,86 @@
 # Creating Multi-Stage Builds and Slimming Images
 
-## Scenario
-Build a minimal Go HTTP server using a Docker multi-stage build. The first stage compiles
-the binary using the full `golang:1.21-alpine` toolchain. The second stage copies only
-the compiled binary into a lean `alpine` image, dropping all build tools, source code,
-and intermediate layers from the final image.
+This lesson demonstrates how multi-stage Docker builds reduce image size and attack surface by separating build-time dependencies from runtime artifacts.
 
-## Why multi-stage builds?
-| Single-stage (golang:alpine) | Multi-stage (alpine runtime) |
-|---|---|
-| ~300 MB+ | ~10–15 MB |
-| Contains compiler, source, build cache | Contains only the binary |
-| Large attack surface | Minimal attack surface |
-| Slower to push/pull | Faster to distribute |
+## Why Multi-Stage Builds
 
-## Dockerfile structure
+Single-stage images often include compilers, package managers, and temporary build files in the final runtime image.
 
-```
-Stage 1 — builder (golang:1.21-alpine)
-  └── Compiles main.go → statically linked binary /app/app
+Multi-stage pattern:
 
-Stage 2 — runtime (alpine:latest)
-  └── COPY --from=builder /app/app
-  └── Runs as unprivileged user (appuser)
-  └── Exposes port 8080
-```
+1. Build stage: compile the application using full toolchain.
+2. Runtime stage: copy only final executable/artifacts into a minimal base.
 
-## Steps
+Result:
 
-### 1. Build the image
+- much smaller images
+- faster push/pull and startup times
+- reduced CVE exposure
+
+## Demo Files
+
+- `main.go`
+- `Dockerfile`
+
+## Build Flow
+
+### 1) Build the image
+
 ```bash
-docker build -t go-web-app:slim .
+docker build -t app-demo:multi-stage .
 ```
 
-### 2. Compare image sizes
-```bash
-# Check the final image size
-docker images go-web-app:slim
+### 2) Inspect final size
 
-# Compare against a single-stage golang build
-docker images golang:1.21-alpine
+```bash
+docker images app-demo:multi-stage
 ```
-The final image should be dramatically smaller than the builder stage.
 
-### 3. Run the container and test it
+In the demo, the multi-stage image is dramatically smaller than a single-stage equivalent.
+
+### 3) Run and verify
+
 ```bash
-docker run -d -p 8080:8080 --name go-app go-web-app:slim
+docker run --rm -p 8080:8080 app-demo:multi-stage
 curl http://localhost:8080
 ```
-Expected response: `Hello from the small, secure container!`
 
-### 4. Inspect the layers
-```bash
-docker history go-web-app:slim
-```
-Notice there are very few layers and no trace of the Go toolchain.
+## Stage Design Summary
 
-### 5. Verify the process runs as a non-root user
-```bash
-docker exec go-app whoami
-```
-Expected output: `appuser`
+### Stage 1: Builder
 
-### 6. Clean up
-```bash
-docker stop go-app && docker rm go-app
-```
+- use `golang` builder image
+- copy source code
+- compile binary
 
-## Key techniques used
+### Stage 2: Minimal Runtime
 
-### Static binary (`-ldflags="-s -w"`)
+- use minimal base (`alpine` or `scratch`)
+- copy only compiled binary from builder
+- run as non-root user
+- expose app port and start process
+
+## Key Line in Multi-Stage Dockerfile
+
 ```dockerfile
-RUN go build -ldflags="-s -w" -o /app/app main.go
+COPY --from=builder /app/app /app/app
 ```
-- `-s` strips the symbol table
-- `-w` strips DWARF debug info
-- Result: smaller binary with no debug metadata
 
-### `COPY --from=builder`
-```dockerfile
-COPY --from=builder /app/app .
-```
-This is the core of multi-stage builds — only the compiled artifact crosses into the
-final image. All build tooling stays in the builder stage and is discarded.
+This is the critical handoff that keeps heavy build tools out of the final image.
 
-### Non-root user
-```dockerfile
-RUN adduser -D appuser
-USER appuser
-```
-Running as an unprivileged user is a security best practice. If the container is
-compromised, the attacker has no root privileges on the host.
+## Best Practices Applied
 
-## Notes
-- For an even smaller image, replace `alpine:latest` with `scratch` (zero bytes base),
-  but you must ensure the binary is fully statically linked (no libc dependencies).
-- `docker scout cves go-web-app:slim` or `trivy image go-web-app:slim` can be used to
-  verify the reduced CVE surface of the slim image vs. the builder stage.
+1. keep final stage minimal
+2. run as non-root user
+3. avoid copying unnecessary files into runtime image
+4. optimize layer order for cache efficiency
+
+## Expected Outcome
+
+- substantial image size reduction (often 80% to 95%)
+- lower registry transfer time
+- smaller runtime attack surface
+
+## Summary
+
+Multi-stage builds are a core production practice for Kubernetes images: build with full tooling, ship only what is required to run.

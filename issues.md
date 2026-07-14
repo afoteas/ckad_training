@@ -75,7 +75,7 @@ The Zscaler Root CA is present in the Windows certificate store but not in:
 Minikube — pull the previously failing image from inside the node:
 
 ```bash
-minikube ssh "docker pull nginx:stable"
+minikube -p mini-ckad ssh "docker pull nginx:stable"
 ```
 
 kind — pull a Docker Hub image via containerd inside a node:
@@ -93,4 +93,59 @@ in both clusters.
 - For kind, re-run the per-node loop after recreating the cluster, or bake the CA into a
   custom node image so it survives `kind create cluster`.
 - Observed alongside this work: a node-level `Too many open files` warning, which is a
-  separate WSL2 inotify/file-descriptor limit issue.
+  separate WSL2 inotify/file-descriptor limit issue (see below).
+
+## WSL2 inotify limits cause "Too many open files"
+
+### Issue
+
+On WSL2, Kubernetes/container operations fail intermittently with:
+
+- `kube-proxy` crashing: `failed complete: too many open files`
+- `systemctl` failing: `Failed to allocate directory watch: Too many open files`
+
+This destabilizes minikube/kind nodes and blocks runtime restarts.
+
+### Root Cause
+
+This is not a disk or open-file-handle problem. WSL2 ships with low `inotify`
+kernel limits (for example `fs.inotify.max_user_instances` often defaults to `128`).
+Docker, minikube, kind, and VS Code each consume many inotify instances/watches,
+exhausting the shared kernel limit. Because minikube/kind nodes are containers on the
+same WSL2 kernel, they hit the same ceiling.
+
+### Applied Solution
+
+Raise the limits on the WSL2 host (kernel-level, so node containers benefit too):
+
+```bash
+# Temporary (current session)
+sudo sysctl fs.inotify.max_user_instances=8192
+sudo sysctl fs.inotify.max_user_watches=1048576
+
+# Persistent (survives WSL restart)
+echo -e "fs.inotify.max_user_instances=8192\nfs.inotify.max_user_watches=1048576" | sudo tee /etc/sysctl.d/99-inotify.conf
+sudo sysctl -p /etc/sysctl.d/99-inotify.conf
+```
+
+Then restart the node runtime cleanly:
+
+```bash
+minikube -p mini-ckad ssh "sudo systemctl restart docker"
+```
+
+### Verification
+
+```bash
+# Confirm new limits are active
+sysctl fs.inotify.max_user_instances fs.inotify.max_user_watches
+
+# Core pods stay healthy (no CrashLoopBackOff on kube-proxy)
+kubectl get pods -A
+```
+
+### Notes
+
+- Applies to both minikube and kind since they share the WSL2 kernel.
+- If limits reset after a full Windows reboot, confirm `/etc/sysctl.d/99-inotify.conf`
+  is present and re-run `sudo sysctl -p /etc/sysctl.d/99-inotify.conf`.

@@ -33,8 +33,6 @@ Kubernetes probes are periodic checks run by kubelet to determine container heal
 
 Manifest file: `probe-demo.yaml`
 
-Note: this demo uses `registry.k8s.io/echoserver:1.10` (port `8080`) to avoid Docker Hub pull issues in environments with custom TLS/cert trust.
-
 Quick test:
 
 ```bash

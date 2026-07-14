@@ -16,15 +16,15 @@ spec:
     spec:
       containers:
         - name: web
-          image: registry.k8s.io/echoserver:1.10
+          image: nginx:stable
           ports:
-            - containerPort: 8080
+            - containerPort: 80
 
           # Runs first during startup; liveness/readiness wait until this succeeds.
           startupProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 80
             periodSeconds: 5
             failureThreshold: 12
 
@@ -32,7 +32,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 2
@@ -42,7 +42,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2

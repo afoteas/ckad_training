@@ -1,135 +1,70 @@
 # Running Go Integration Tests Against kind in CI
 
-This guide demonstrates how to set up and run Go integration tests against a kind cluster in CI/CD pipelines.
+This guide shows a practical GitHub Actions workflow that creates a kind cluster, runs Go integration tests against that real cluster, and exports test results as JUnit XML.
 
-## CI Pipeline Setup
+## Why This CI Pattern
 
-```yaml
-# GitHub Actions example
-name: Integration Tests
+For Kubernetes workloads, integration tests catch issues that unit tests miss, such as:
 
-on: [push, pull_request]
+- manifest wiring mistakes
+- Service/Deployment selector mismatches
+- readiness and rollout behavior
+- runtime interactions between resources
 
-jobs:
-  integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Create kind cluster
-      uses: helm/kind-action@v1.7.0
-      with:
-        cluster_name: test-cluster
-        
-    - name: Build image
-      run: docker build -t my-app:test .
-      
-    - name: Load image into kind
-      run: kind load docker-image my-app:test --name test-cluster
-      
-    - name: Run integration tests
-      run: go test ./... -tags=integration -v -timeout=10m
-```
+kind is ideal in CI because it creates a disposable cluster quickly on the runner and can be deleted automatically after tests.
 
-## Kind Cluster Creation
+## End-to-End Workflow
 
-```bash
-# Create cluster in CI
-kind create cluster --name ci-test
+The job sequence is:
 
-# Verify cluster
-kubectl cluster-info
-kubectl get nodes
-```
+1. trigger on push/pull request
+2. checkout repository
+3. install Go
+4. install kind and kubectl
+5. create kind cluster
+6. build and load Docker image into kind
+7. apply Kubernetes test manifests
+8. run Go integration tests
+9. export JUnit XML
+10. collect cluster diagnostics on failure
+11. always delete cluster
 
-## Load Docker Image Into kind
+## Workflow Implementation Notes
 
-```bash
-# Build image locally
-docker build -t my-app:test .
+The CI job should include these logical stages in order:
 
-# Load into kind cluster
-kind load docker-image my-app:test --name ci-test
+1. checkout code
+2. setup Go toolchain
+3. install kind and kubectl
+4. create kind cluster
+5. build and load image into cluster
+6. apply test manifests
+7. run integration tests and generate JUnit XML
+8. publish test report artifact
+9. collect diagnostics only on failure
+10. always delete the kind cluster
 
-# Verify image availability
-kubectl describe nodes
-```
+## Local-to-CI Mapping
 
-## Go Test Tags
-
-```go
-// +build integration
-
-package integration
-
-import "testing"
-
-func TestWithRealCluster(t *testing.T) {
-  // This test only runs with -tags=integration
-}
-```
-
-## Run Tests in CI
+These CI steps mirror local commands exactly:
 
 ```bash
-# Run only integration tests
-go test ./... -tags=integration -v
-
-# With timeout
-go test ./... -tags=integration -v -timeout=10m
-
-# With coverage
-go test ./... -tags=integration -v -coverprofile=coverage.out
-
-# Specific test function
-go test ./... -tags=integration -run TestSpecific -v
+kind create cluster --name ci
+docker build -t my-app:ci .
+kind load docker-image my-app:ci --name ci
+kubectl apply -f k8s/test-deployment.yaml
+go test ./... -tags=integration -v -timeout=15m
+kind delete cluster --name ci
 ```
 
-## CI Best Practices
+## Operational Tips
 
-1. **Resource limits**: Set memory/CPU limits for kind
-2. **Timeout handling**: Include generous timeouts for pod startup
-3. **Image preloading**: Load common images before tests run
-4. **Log capture**: Collect cluster logs on failure
-5. **Cleanup**: Always delete cluster after tests
+- keep integration tests deterministic
+- use explicit timeouts for rollout and tests
+- upload JUnit artifacts for every run
+- collect diagnostics only on failure to reduce noise
+- always clean up to avoid flaky follow-up jobs
 
-## Capture Cluster Logs on Failure
+## Summary
 
-```bash
-#!/bin/bash
-if [ $? -ne 0 ]; then
-  echo "Tests failed, collecting logs..."
-  kubectl logs -A --all-containers=true > /tmp/cluster-logs.txt
-  kind export logs /tmp/kind-logs
-fi
-```
-
-## Example CI Configuration
-
-```yaml
-test:
-  stage: test
-  script:
-    - kind create cluster --config kind-config.yaml
-    - docker build -t app:test .
-    - kind load docker-image app:test
-    - go test ./... -tags=integration -v -timeout=15m
-  after_script:
-    - kind delete cluster
-```
-
-## Debugging Failed Tests
-
-```bash
-# Check pod status
-kubectl get pods -A
-
-# View pod logs
-kubectl logs <pod-name> -n <namespace>
-
-# Describe pod for events
-kubectl describe pod <pod-name> -n <namespace>
-
-# Check cluster events
-kubectl get events -A
-```
+This approach gives you reliable Kubernetes integration validation in GitHub Actions using an ephemeral kind cluster, real Go integration tests, standardized JUnit results, and guaranteed teardown.

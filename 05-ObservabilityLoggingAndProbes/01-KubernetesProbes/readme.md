@@ -28,3 +28,17 @@ Kubernetes probes are periodic checks run by kubelet to determine container heal
 2. Use both liveness and readiness for robust reliability.
 3. Tune timings to real application startup and runtime behavior.
 4. Validate probe settings in non-production before rollout.
+
+## Basic Combined Example (All 3 Probes)
+
+Manifest file: `probe-demo.yaml`
+
+Note: this demo uses `registry.k8s.io/echoserver:1.10` (port `8080`) to avoid Docker Hub pull issues in environments with custom TLS/cert trust.
+
+Quick test:
+
+```bash
+kubectl apply -f probe-demo.yaml
+kubectl get pods -l app=probe-demo -w
+kubectl describe pod -l app=probe-demo
+```

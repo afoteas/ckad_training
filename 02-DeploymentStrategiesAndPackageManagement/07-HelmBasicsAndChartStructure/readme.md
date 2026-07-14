@@ -123,3 +123,24 @@ helm status myrelease -n myns
 - Template error: Run helm template or helm upgrade --dry-run --debug.
 - Values not applied: Check merged values with helm get values.
 - Bad rollout: Use helm history then helm rollback.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Helm Workflow Lifecycle
+
+1. create or fetch chart
+2. customize values
+3. install as release
+4. upgrade over time
+5. rollback if release is unhealthy
+
+### Key Structural Components
+
+- `Chart.yaml` for chart metadata and dependencies
+- `values.yaml` for default configurable parameters
+- `templates/` for Go-template manifests
+- `charts/` for subcharts
+
+### Operational Value
+
+Helm provides repeatable packaging, versioned releases, and native rollback history, making multi-environment Kubernetes operations easier to standardize.

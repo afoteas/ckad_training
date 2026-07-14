@@ -86,3 +86,18 @@ kubectl describe pod <pod-name>
 kubectl logs <pod-name> --all-containers --tail=200
 ```
 - If you want a successful install without external DB setup complexity, omit the external database overrides and let the chart deploy its internal MariaDB.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### End-to-End Helm Flow
+
+1. `helm repo add` and `helm repo update`
+2. `helm install` with required value overrides
+3. validate with `helm status` and `kubectl get pods`
+4. inspect effective values via `helm get values`
+5. upgrade with new settings using `helm upgrade`
+6. rollback to known good revision using `helm rollback`
+
+### Practical Note
+
+For demos and training, intentionally imperfect values are useful for learning rollback behavior and operational diagnosis.

@@ -67,3 +67,25 @@ You should see the old ReplicaSet scaling to 0 and the new one reaching 5.
   and tied to replica count.
 - `kubectl rollout pause deploy critical-api` lets you freeze the rollout mid-way to
   manually validate the canary pods before continuing with `kubectl rollout resume`.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Safety vs Speed Profiles
+
+Slow and safe profile:
+
+- `maxUnavailable: 0`
+- `maxSurge: 1`
+
+Effect: no existing pod removed before replacement is ready.
+
+Aggressive profile:
+
+- high `maxUnavailable`
+- low `maxSurge`
+
+Effect: faster replacement but potential temporary outage.
+
+### Practical Insight
+
+For critical APIs, use conservative rollout settings and only increase aggressiveness when cluster capacity and SLO risk are well understood.

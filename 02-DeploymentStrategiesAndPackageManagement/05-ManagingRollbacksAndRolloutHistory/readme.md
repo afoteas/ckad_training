@@ -33,3 +33,29 @@ kubectl describe deployment <name>
 ## Summary
 
 Rollback readiness and revision visibility are mandatory operational controls for safe Kubernetes delivery.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Why Rollout History Matters
+
+Every deployment template change creates a new revision, giving operators an audit trail for:
+
+1. what changed
+2. when it changed
+3. what to roll back to
+
+### Inspection Patterns
+
+```bash
+kubectl rollout history deployment/myapp
+kubectl rollout history deployment/myapp --revision=2
+```
+
+Use revision inspection to identify problematic image tags or config deltas before triggering rollback.
+
+### Safety Best Practices
+
+- use immutable image tags, not latest
+- gate rollout completion on health and metrics
+- include rollback logic in CI/CD automation
+- document rollback cause to prevent repeat incidents

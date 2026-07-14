@@ -28,3 +28,23 @@ Traffic switches from Blue to Green only after validation.
 ## Summary
 
 Blue/Green is ideal when you need predictable cutover and fast rollback with minimal user impact.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Blue/Green Mechanics
+
+- Blue is current live environment.
+- Green is staged new version.
+- One Service selector determines active traffic target.
+
+### Operational Strengths
+
+1. near-instant cutover via selector change
+2. near-instant rollback via selector revert
+3. strong pre-production validation on Green before user exposure
+
+### Trade-Offs
+
+1. temporary double resource usage (compute and memory)
+2. higher complexity for stateful systems and data synchronization
+3. requires disciplined internal testing before cutover

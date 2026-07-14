@@ -85,3 +85,17 @@ kubectl delete -f app-green.yaml
   ```bash
   kubectl patch svc app-gateway -p '{"spec":{"selector":{"version":"green"}}}'
   ```
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Validation-first Workflow
+
+1. deploy and verify blue environment
+2. deploy green with distinct label
+3. run smoke and integration checks on green
+4. switch service selector to green
+5. keep blue running briefly as rollback target
+
+### Zero-Downtime Principle
+
+Service cutover is network-routing based, not in-place replacement, which is why this method avoids deployment interruption during switch.

@@ -105,3 +105,19 @@ Delete overlay resources:
 - Namespace mismatch between overlays and validation commands.
 - Assuming generated names when nameSuffix or namePrefix is set.
 
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Why Kustomize
+
+Kustomize reduces YAML duplication by separating common manifests (base) from environment-specific changes (overlays).
+
+### Core Pattern
+
+1. keep shared resources in base
+2. encode environment deltas in overlays
+3. render and apply with `kubectl -k`
+
+### Scope Clarification
+
+Kustomize is native configuration overlay tooling. It is not a package manager with chart repositories or release history like Helm.
+

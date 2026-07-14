@@ -61,4 +61,23 @@ kubectl rollout undo deploy api-service --to-revision=1
 - `kubectl rollout status` blocks until the rollout completes or fails.
 - The `CHANGE-CAUSE` column in history is populated from the `kubernetes.io/change-cause` annotation.
 
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Failure Signal Pattern
+
+For bad image tag scenarios, this sequence is typical:
+
+1. rollout status hangs at partial progress
+2. pods show `ImagePullBackOff` or `ErrImagePull`
+3. describe events reveal image tag resolution failure
+
+### Fast Recovery Pattern
+
+```bash
+kubectl rollout undo deploy api-service
+kubectl rollout status deploy api-service
+```
+
+Use immediate undo first, then target explicit revision if needed.
+
 

@@ -81,3 +81,19 @@ kubectl delete -k overlays/prod
 
 ## CKAD tip
 In the exam, always render first, then apply, then verify with `kubectl get` and `kubectl describe` before moving to the next task.
+
+## Transcript Enhancements (Preserved Notes Kept)
+
+### Overlay Intent in This Demo
+
+- `dev` overlay lowers replica count for cost-efficient development.
+- `prod` overlay increases replicas and enforces stricter resource requests/limits.
+
+### Promotion Pattern
+
+```bash
+kubectl apply -k overlays/dev
+kubectl apply -k overlays/prod
+```
+
+Same base manifests are reused while overlays safely represent environment-specific operational policies.

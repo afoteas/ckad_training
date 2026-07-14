@@ -1,111 +1,112 @@
-# Integration Test Writing with kube-test-harness
+# Integration Test Writing with Kube Test Harness
 
-This guide shows how to write integration tests against real Kubernetes clusters using testing patterns and harnesses.
+This guide explains why Kubernetes integration tests matter and how to run them with a kube test harness approach.
 
-## Overview
+## Why Integration Tests on Kubernetes
 
-Integration tests verify that your application works correctly within a real Kubernetes environment, not just in unit test mocks. This requires proper cluster setup, fixture management, and cleanup.
+Unit tests are valuable, but they validate components in isolation. Kubernetes behavior often depends on how resources interact inside a real cluster.
 
-## Test Structure
+Examples of issues unit tests typically miss:
+
+- Deployment, Service, and Pod wiring mistakes
+- label/selector mismatches
+- manifest misconfigurations
+- readiness or rollout behavior problems
+- ConfigMap and runtime environment wiring issues
+
+Integration tests validate the full manifest flow end-to-end in a real cluster so these errors are detected before production.
+
+## What Kube Test Harness Gives You
+
+A kube test harness framework helps you automate Kubernetes integration testing by:
+
+- creating a temporary test cluster programmatically
+- applying manifests under test
+- running assertions on cluster state
+- cleaning up the cluster automatically after the test run
+
+The key advantage is repeatability: every run starts from a clean, isolated environment.
+
+## Core Testing Workflow
+
+A typical flow looks like this:
+
+1. Start a temporary cluster (often kind).
+2. Apply manifests under test (Deployments, Services, and related resources).
+3. Assert resource state (for example, pods running, rollout successful).
+4. Tear down the cluster when tests complete.
+
+This model works well for local development and CI pipelines.
+
+## Example Test Flow
+
+The following example shows the pattern described in this lesson: create harness, apply manifest, wait for pods, then clean up.
 
 ```go
 package integration
 
 import (
-  "context"
   "testing"
-  
-  corev1 "k8s.io/api/core/v1"
-  metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-  "k8s.io/client-go/kubernetes"
 )
 
-func TestMyApp(t *testing.T) {
-  // Setup: Create test namespace
-  namespace := "test-" + randomString()
-  
-  // Arrange: Deploy dependencies
-  createNamespace(t, namespace)
-  deployApp(t, namespace)
-  
-  // Act: Test functionality
-  result := testAppBehavior(t, namespace)
-  
-  // Assert: Verify results
-  if !result.Success {
-    t.Fatalf("Expected success, got failure")
-  }
-  
-  // Cleanup: Delete all resources
-  deleteNamespace(t, namespace)
-}
-```
+func TestDeploymentComesUp(t *testing.T) {
+  h := NewHarness(t) // Creates and manages an ephemeral test cluster lifecycle
 
-## Test Fixtures
-
-```go
-func setupTestFixture(t *testing.T, namespace string) {
-  // Create ConfigMap
-  cm := &corev1.ConfigMap{
-    ObjectMeta: metav1.ObjectMeta{
-      Name:      "app-config",
-      Namespace: namespace,
-    },
-    Data: map[string]string{
-      "key": "value",
-    },
+  // Apply manifests under test (for example, testdata/deployment.yaml)
+  if err := h.ApplyFile("testdata/deployment.yaml"); err != nil {
+    t.Fatalf("apply failed: %v", err)
   }
-  _, err := clientset.CoreV1().ConfigMaps(namespace).Create(context.Background(), cm, metav1.CreateOptions{})
-  if err != nil {
-    t.Fatalf("Failed to create configmap: %v", err)
+
+  // Assert expected runtime behavior in the cluster
+  if err := h.WaitForPodsRunning("default", 3); err != nil {
+    t.Fatalf("pods not running as expected: %v", err)
   }
 }
 ```
 
-## Kubernetes Client Usage
+Notes:
 
-```go
-import (
-  "k8s.io/client-go/kubernetes"
-  "k8s.io/client-go/tools/clientcmd"
-)
+- `ApplyFile` loads and applies manifests from test data.
+- `WaitForPodsRunning` validates that expected pods reach Running state.
+- Harness teardown ensures each test run starts fresh.
 
-func getTestClient() (kubernetes.Interface, error) {
-  kubeconfig := os.Getenv("KUBECONFIG")
-  config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-  if err != nil {
-    return nil, err
-  }
-  return kubernetes.NewForConfig(config)
-}
-```
+## Benefits
 
-## Best Practices
+- catches Kubernetes wiring mistakes before production
+- validates real cluster behavior, not static assumptions
+- automates cluster setup and teardown in tests
+- fits naturally into CI/CD pipelines
 
-1. **Isolation**: Each test uses its own namespace
-2. **Cleanup**: Always delete test resources after completion
-3. **Timeouts**: Set reasonable timeouts for pod readiness
-4. **Error Handling**: Log detailed errors for debugging
-5. **Parallel Testing**: Use separate namespaces for parallel tests
+## Trade-Offs
 
-## Resource Cleanup
+Integration tests require more resources and runtime than unit tests.
 
-```go
-func cleanup(t *testing.T, clientset kubernetes.Interface, namespace string) {
-  err := clientset.CoreV1().Namespaces().Delete(
-    context.Background(),
-    namespace,
-    metav1.DeleteOptions{},
-  )
-  if err != nil {
-    t.Logf("Warning: Failed to delete namespace: %v", err)
-  }
-}
-```
+- cluster startup takes time
+- assertions may need polling and timeouts
+- CI jobs require extra CPU/memory
 
-## Common Patterns
+For Kubernetes workloads, this cost is usually worth it because confidence and reliability increase significantly.
 
-- **Wait for readiness**: Poll pod status until ready
-- **Port forwarding**: Test internal services
-- **Log collection**: Capture logs for debugging
-- **Resource validation**: Verify expected resources created
+## CI/CD Usage Pattern
+
+In CI (for example, GitHub Actions), the common pattern is:
+
+1. spin up ephemeral cluster
+2. run integration test suite
+3. collect logs/artifacts on failures
+4. tear down cluster automatically
+
+This prevents manual intervention and keeps every pipeline run deterministic.
+
+## Recommended Use Cases
+
+Use these tests especially for:
+
+- critical workloads
+- custom controllers/operators
+- services with strict availability or rollout requirements
+- changes touching manifests, probes, labels/selectors, or networking
+
+## Summary
+
+Kubernetes integration tests with a kube test harness help you catch real cluster issues early, improve deployment safety, and reduce costly production failures.

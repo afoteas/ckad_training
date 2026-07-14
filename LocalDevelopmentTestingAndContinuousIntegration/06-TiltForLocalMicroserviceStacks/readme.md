@@ -1,10 +1,32 @@
 # Tilt for Local Microservice Stacks
 
-This guide demonstrates how to use Tilt to orchestrate and develop multiple microservices locally.
+This guide explains how Tilt helps manage local Kubernetes development when you move from one service to many microservices.
 
-## Overview
+## Why Microservice Local Dev Gets Hard
 
-Tilt is a toolkit for local development of microservices. It manages multi-service deployments, handles rebuilding, and provides a unified UI for monitoring your entire stack.
+As service count grows (APIs, frontends, workers), traditional workflows become painful:
+
+- repeated manual rebuild and redeploy per service
+- slow feedback loops
+- poor visibility into what is running or broken
+- fragmented logs across multiple terminals
+
+Tilt is designed to solve this by unifying build, deploy, and monitoring.
+
+## What Tilt Is
+
+Tilt is an open-source tool for local Kubernetes development, especially useful for multi-service apps.
+
+It uses a `Tiltfile` written in Starlark (Python-like syntax) to define:
+
+- how images are built
+- which Kubernetes manifests are deployed
+- how services are exposed locally
+
+Tilt provides both:
+
+- CLI workflow
+- Web UI with live logs, status, and update visibility
 
 ## Installation
 
@@ -12,41 +34,89 @@ Tilt is a toolkit for local development of microservices. It manages multi-servi
 curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 ```
 
-## Basic Tiltfile Structure
+## Core Workflow
+
+```bash
+tilt up
+```
+
+What happens during `tilt up`:
+
+1. Tilt loads the `Tiltfile`
+2. Builds images
+3. Applies Kubernetes manifests
+4. Starts watching source changes
+5. Streams logs/status in CLI and UI
+
+## Basic Tiltfile Example (from lesson)
 
 Create a `Tiltfile` in your project root:
 
 ```python
-# Load all services
-load('ext://restart_process', 'docker_build_with_restart')
-
-docker_build('my-service-1', '.', dockerfile='service1/Dockerfile')
-docker_build('my-service-2', '.', dockerfile='service2/Dockerfile')
-
-# Deploy resources
+# Load Kubernetes manifests
 k8s_yaml('k8s/deployment.yaml')
 
-# Forward ports
-k8s_resource('my-service-1', port_forwards=8001)
-k8s_resource('my-service-2', port_forwards=8002)
+# Build image from current directory
+docker_build('myapp', '.')
+
+# Expose app locally via port-forward
+k8s_resource('myapp', port_forwards=8000)
 ```
 
-## Starting Tilt
+How this works:
+
+- `k8s_yaml` tells Tilt which manifests to deploy
+- `docker_build` defines image build instructions
+- `k8s_resource` configures runtime behavior like local port access
+
+## Live Update and Feedback
+
+Tilt watches for source changes.
+
+On file change, Tilt can sync updates directly into running containers (depending on configuration), which avoids full rebuilds for many edits and speeds iteration.
+
+The Tilt UI gives immediate visibility:
+
+- resource health/state
+- logs by service
+- build/deploy updates in real time
+- quick error detection
+
+## Useful Commands
 
 ```bash
-# Launch Tilt UI
 tilt up
 
-# View logs for specific service
-tilt logs my-service
+# View resource logs
+tilt logs
 
-# Restart service
-tilt trigger my-service
+# Manually trigger a resource update
+tilt trigger myapp
 ```
 
-## Advanced Configuration
+## Benefits
 
-### Service Dependencies
+- Faster microservice feedback loops
+- Unified local management for multi-service stacks
+- Better visibility with integrated UI and logs
+- Reduced manual rebuild/redeploy toil
+
+## Considerations
+
+- Starlark (`Tiltfile`) has a learning curve
+- Large service stacks can be resource intensive locally
+- You may need a stronger workstation for bigger microservice environments
+
+## Practical Guidance
+
+1. Start with a minimal `Tiltfile` and one service.
+2. Add more services incrementally.
+3. Use the UI to track failures quickly.
+4. Watch CPU/RAM usage as stack size increases.
+
+## Key Takeaway
+
+Tilt is a strong choice for local Kubernetes microservice development because it centralizes build, deploy, and monitoring into one fast feedback workflow.
 
 ```python
 # Define load order

@@ -198,7 +198,11 @@ Skaffold behavior in this mode:
 
 The default build uses Docker. The `skaffold.yaml` also ships a `kaniko` profile that builds the image **inside a pod** instead of the local Docker daemon.
 
-Key difference: Kaniko always **pushes** the built image, so it needs a registry. On minikube, enable the built-in registry first:
+Key difference: Kaniko always **pushes** the built image, so it needs a registry reachable by both the Kaniko build pod and cluster nodes.
+
+### If you use minikube
+
+Enable the built-in registry first:
 
 ```bash
 minikube addons enable registry -p mini-ckad
@@ -209,6 +213,112 @@ Then run with the Kaniko profile and point Skaffold at that registry:
 ```bash
 skaffold dev -p kaniko --default-repo localhost:5000
 ```
+
+### If you use kind
+
+Do not use `localhost:5000` as the Kaniko target in kind. For pods, `localhost` points to the pod itself, not your host.
+
+You have two valid registry patterns with kind:
+
+- Option A: local registry container on the host Docker network (simpler)
+- Option B: registry running inside Kubernetes (more cluster-native)
+
+#### Option A: local registry container (host Docker)
+
+Create a local registry container and connect it to the `kind` Docker network:
+
+```bash
+docker run -d --restart=always -p 5000:5000 --name kind-registry registry:2
+docker network connect kind kind-registry || true
+```
+
+Create the ConfigMap used by tooling to discover the local registry:
+
+```bash
+cat <<'EOF' | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-registry-hosting
+  namespace: kube-public
+data:
+  localRegistryHosting.v1: |
+    host: "kind-registry:5000"
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+EOF
+```
+
+Then run Kaniko and point Skaffold at the registry container name:
+
+```bash
+skaffold dev -p kaniko --default-repo kind-registry:5000
+```
+
+Optional quick checks:
+
+```bash
+docker ps --format '{{.Names}}\t{{.Ports}}' | grep kind-registry
+kubectl get configmap local-registry-hosting -n kube-public
+```
+
+#### Option B: in-cluster registry (Kubernetes Deployment + Service)
+
+Deploy a registry into the cluster:
+
+```bash
+cat <<'EOF' | kubectl apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: registry
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:2
+          ports:
+            - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  selector:
+    app: registry
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+EOF
+```
+
+Then run Kaniko and point Skaffold at the in-cluster service DNS:
+
+```bash
+skaffold dev -p kaniko --default-repo registry.registry.svc.cluster.local:5000
+```
+
+Notes for Option B:
+
+- add a PVC if you need image persistence across pod restarts
+- configure node runtime trust if your environment enforces strict TLS/insecure-registry rules
+- this is valid for labs, but Option A is usually easier to bootstrap on kind
 
 How to tell which builder ran:
 

@@ -6,12 +6,21 @@ This lesson focuses on keeping Kubernetes CI jobs fast, predictable, and cost-ef
 
 CI clusters are ephemeral by design. If resources are not cleaned correctly, pipelines become flaky, slower, and more expensive.
 
+In Kubernetes CI pipelines, temporary resources commonly include:
+
+- test clusters (kind or minikube)
+- namespaces
+- pods and jobs
+- PersistentVolumeClaims (PVCs)
+
 Common failure patterns:
 
 - leaked namespaces and workloads from previous runs
 - disk pressure from unused images and layers
 - noisy-neighbor behavior due to missing requests/limits
 - long job times from avoidable rebuilds/downloads
+
+When runners share compute, leftover resources from one run can degrade the next run's reliability and performance.
 
 ## Core Principles
 
@@ -45,6 +54,12 @@ Best for strongest isolation and repeatability.
 kind delete cluster --name ci
 ```
 
+Equivalent minikube teardown:
+
+```bash
+minikube delete -p ci
+```
+
 This avoids cross-test contamination and keeps test environments deterministic.
 
 ## Always Cleanup on Failure
@@ -66,6 +81,19 @@ If using namespace-only cleanup:
   if: always()
   run: kubectl delete ns test-${{ github.run_id }} --ignore-not-found=true --wait=true
 ```
+
+This pattern ensures cleanup runs even if earlier steps fail.
+
+## Create-Test-Delete Pattern
+
+Use this deterministic sequence in every pipeline run:
+
+1. create temporary cluster and namespace
+2. deploy resources and run tests
+3. delete test namespace
+4. tear down cluster
+
+This guarantees each run starts fresh and ends clean, with no manual intervention.
 
 ## Capture Diagnostics Before Teardown
 
@@ -114,6 +142,8 @@ Use Docker Buildx cache in CI to reduce rebuild time.
     cache-to: type=gha,mode=max
 ```
 
+Layer caching avoids rebuilding unchanged layers and reduces runtime/cost significantly across repeated CI runs.
+
 ### 3) Cache Language Dependencies
 
 Cache module/package directories per lockfile hash.
@@ -138,6 +168,38 @@ Parallel jobs speed up pipelines but can saturate runner resources.
 - cap max parallel test jobs
 - split suites by labels or tags
 - monitor CPU/memory usage across jobs
+
+### 6) Cleanup PVCs and Ephemeral Artifacts
+
+If tests generate temporary storage, remove PVCs when tests complete:
+
+```bash
+kubectl delete pvc -n test-${RUN_ID} --all --ignore-not-found=true
+```
+
+This prevents storage accumulation and keeps subsequent runs predictable.
+
+### 7) Use TTL for Finished Jobs
+
+Kubernetes can auto-clean completed Jobs via `ttlSecondsAfterFinished`:
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ci-smoke
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: smoke
+          image: busybox
+          command: ["sh", "-c", "echo smoke test"]
+```
+
+This reduces object buildup from completed Job resources.
 
 ## Example: CI Job Skeleton
 
@@ -166,6 +228,10 @@ jobs:
           kubectl create ns test-${{ github.run_id }}
           # apply manifests and run tests here
 
+      - name: Delete test namespace
+        if: always()
+        run: kubectl delete ns test-${{ github.run_id }} --ignore-not-found=true --wait=true
+
       - name: Collect diagnostics
         if: failure()
         run: |
@@ -175,9 +241,22 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          kubectl delete ns test-${{ github.run_id }} --ignore-not-found=true --wait=true
           kind delete cluster --name ci
 ```
+
+The `--ignore-not-found` flag makes cleanup idempotent and safe when partial deletion already occurred.
+
+## Monitor Cost and Performance Trends
+
+Track CI metrics over time so bottlenecks are identified early:
+
+- average pipeline duration
+- cache hit/miss ratio
+- cluster startup time
+- test namespace object count
+- storage usage from PVCs and images
+
+Trend monitoring helps prevent small inefficiencies from becoming expensive reliability issues.
 
 ## Anti-Patterns to Avoid
 

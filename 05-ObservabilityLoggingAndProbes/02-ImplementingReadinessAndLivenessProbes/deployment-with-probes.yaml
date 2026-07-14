@@ -19,7 +19,13 @@ spec:
         image: nginx:latest
         ports:
         - containerPort: 80
-        
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
         # --- Liveness Probe: Checks if the application is alive. If this fails, the container is restarted. ---
         livenessProbe:
           httpGet:

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: startup-probe-demo
+  labels:
+    app: slow-start-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slow-start-app
+  template:
+    metadata:
+      labels:
+        app: slow-start-app
+    spec:
+      containers:
+      - name: slow-starting-app
+        image: busybox:latest
+        # We simulate a slow-starting application by having the main process sleep 
+        # for a duration longer than the regular Liveness/Readiness probes can tolerate.
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "--- Simulating 30-second startup delay... ---"
+            # This sleep simulates a long boot process (e.g., running migrations, loading data)
+            sleep 30 
+            echo "--- Application is now ready! ---"
+            # Now that startup is complete, keep the process alive
+            sleep infinity 
+        
+        # --- LIVENESS PROBE ---
+        # Highly aggressive: Checks every 5s and restarts after just 2 failures (10s total). 
+        # Without the Startup Probe, this would cause a CrashLoopBackOff due to the 30s sleep.
+        livenessProbe:
+          exec:
+            command:
+              - cat
+              - /dev/null
+          periodSeconds: 5        # Check every 5 seconds
+          failureThreshold: 2     # Restart after 2 failures
+        
+        # --- READINESS PROBE ---
+        # Also aggressive: Checks every 5s and fails after 2 failures.
+        readinessProbe:
+          exec:
+            command:
+              - cat
+              - /dev/null
+          periodSeconds: 5        # Check every 5 seconds
+          failureThreshold: 2     # Pull from service after 2 failures
+
+        # --- STARTUP PROBE ---
+        # Runs only during startup. Allows a total of 50 seconds (10s * 5 checks) 
+        # for the container to successfully start before giving up and restarting it.
+        startupProbe:
+          exec:
+            # Simple check: Test if the "ready" file exists (which it never will in this example, 
+            # causing the startup probe to run until the process completes its 30s sleep).
+            command:
+              - cat
+              - /dev/null
+          periodSeconds: 10       # Check every 10 seconds
+          failureThreshold: 5     # Allow 5 failures (10s * 5 = 50s total allowed boot time)

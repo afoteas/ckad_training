@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-demo-app
+  labels:
+    app: metrics-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-app
+  template:
+    metadata:
+      labels:
+        app: metrics-app
+      annotations:
+        # 1. The CRUCIAL annotation for Prometheus Service Discovery:
+        # Tells Prometheus to scrape this Pod.
+        prometheus.io/scrape: "true"
+        # 2. Annotation for the port Prometheus should use (defaults to 80)
+        prometheus.io/port: "9100"
+        # 3. Annotation for the path (defaults to /metrics)
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: instrumented-app
+        # This image exposes host metrics on port 9100 and path /metrics.
+        image: prom/node-exporter:latest 
+        ports:
+        - name: metrics-port
+          containerPort: 9100
+        # COMMAND: Removed custom command, using the image's default entrypoint.
+
+---
+# Optional Service to expose the application stably
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-app-service
+  labels:
+    app: metrics-app
+spec:
+  selector:
+    app: metrics-app
+  ports:
+  - name: http-metrics
+    port: 9100
+    targetPort: 9100

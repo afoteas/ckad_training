@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-check-demo
+  labels:
+    app: health-check-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: health-check-app
+  template:
+    metadata:
+      labels:
+        app: health-check-app
+    spec:
+      containers:
+      - name: demo-nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        
+        # --- Liveness Probe: Checks if the application is alive. If this fails, the container is restarted. ---
+        livenessProbe:
+          httpGet:
+            path: / # Check the root path
+            port: 80
+          # Custom Thresholds:
+          initialDelaySeconds: 15 # Wait 15 seconds after starting before checking
+          periodSeconds: 20       # Check every 20 seconds
+          timeoutSeconds: 5       # Allow 5 seconds for a response
+          failureThreshold: 3     # Restart only after 3 consecutive failures
+          
+        # --- Readiness Probe: Checks if the application is ready to serve traffic. If this fails, traffic is diverted. ---
+        readinessProbe:
+          httpGet:
+            path: / # Check the root path
+            port: 80
+          # Custom Thresholds:
+          initialDelaySeconds: 5  # Wait only 5 seconds before checking readiness
+          periodSeconds: 10       # Check every 10 seconds
+          timeoutSeconds: 2       # Allow 2 seconds for a response
+          failureThreshold: 5     # Wait for 5 consecutive failures before pulling from service

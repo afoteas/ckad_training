@@ -34,3 +34,26 @@ kubectl get events --sort-by=.metadata.creationTimestamp
 ```
 
 This sequence quickly surfaces common causes such as image pull failures, probe failures, and scheduling/resource constraints.
+
+## How to Run (This Lesson)
+
+Deploy the demo workload:
+
+```bash
+kubectl apply -f deployment-with-startup-probes.yaml
+kubectl get pods -l app=slow-start-app -w
+```
+
+Debug with logs and events:
+
+```bash
+kubectl describe pod -l app=slow-start-app
+kubectl logs -l app=slow-start-app --tail=100
+kubectl get events --sort-by=.metadata.creationTimestamp | tail -n 30
+```
+
+Cleanup:
+
+```bash
+kubectl delete -f deployment-with-startup-probes.yaml
+```

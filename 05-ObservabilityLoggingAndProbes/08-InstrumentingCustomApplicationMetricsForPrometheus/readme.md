@@ -34,3 +34,43 @@ kubectl run temp-tester --rm -i --restart=Never --image=busybox:stable -- wget -
 ```
 
 If output shows metric lines, instrumentation is working.
+
+## How to Run (This Lesson)
+
+### Option A: Run Local Python Instrumentation Example
+
+From this folder:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install prometheus_client
+python app.py
+```
+
+In another terminal, generate traffic and inspect metrics:
+
+```bash
+curl http://localhost:8080/
+curl http://localhost:8080/metrics
+```
+
+### Option B: Run Kubernetes Metrics Demo Manifest
+
+```bash
+kubectl apply -f metrics-app-deployment.yaml
+kubectl get pods -l app=metrics-app -w
+kubectl get svc metrics-app-service
+```
+
+Quick in-cluster check:
+
+```bash
+kubectl run temp-tester --rm -i --restart=Never --image=busybox:stable -- wget -T 2 -O - http://metrics-app-service:9100/metrics
+```
+
+Cleanup:
+
+```bash
+kubectl delete -f metrics-app-deployment.yaml
+```

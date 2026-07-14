@@ -38,3 +38,25 @@ kubectl describe pod <pod-name>
 ```
 
 Use distinct readiness and liveness endpoints when your app can be alive before it is truly ready to handle traffic.
+
+## How to Run (This Lesson)
+
+From this folder:
+
+```bash
+kubectl apply -f deployment-with-probes.yaml
+kubectl get pods -l app=health-check-app -w
+```
+
+Inspect probe behavior:
+
+```bash
+kubectl describe pod -l app=health-check-app
+kubectl logs -l app=health-check-app --tail=100
+```
+
+Cleanup:
+
+```bash
+kubectl delete -f deployment-with-probes.yaml
+```

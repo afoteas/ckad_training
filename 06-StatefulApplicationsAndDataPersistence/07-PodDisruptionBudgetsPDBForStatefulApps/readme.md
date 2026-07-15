@@ -2,15 +2,20 @@
 
 PDBs protect availability during planned disruptions such as node drains and upgrades.
 
-## Why PDBs
+## Why Pod Disruption Budgets?
 
-Stateful apps can break if too many replicas are evicted at once.
-A PDB sets how many pods must remain available.
+- Voluntary disruptions (node drain, upgrades) can evict pods.
+- Stateful apps risk downtime if too many pods go offline.
+- PDBs define the minimum pods that must stay available.
+- They help ensure service continuity during maintenance.
 
 ## Voluntary vs Involuntary Disruptions
 
-- voluntary: drain, maintenance, admin eviction, scale actions
-- involuntary: node crash, kernel panic, AZ outage
+| Voluntary disruptions | Involuntary disruptions |
+| --- | --- |
+| Node drains for upgrades | Hardware or VM failures |
+| Cluster scaling down | Kernel panics or crashes |
+| Admin-initiated pod evictions | Out-of-resource evictions |
 
 PDBs help with voluntary disruptions. They do not stop involuntary failures.
 
@@ -36,9 +41,10 @@ spec:
 
 With 3 MySQL replicas, this prevents drain/eviction from dropping below 2 available pods.
 
-## Best Practices
+## Best Practices and Limitations
 
-- test PDB behavior in staging
-- choose values that balance safety and maintenance speed
-- combine with sufficient replica count
-- monitor during drains and upgrades
+- always test PDBs in staging before production
+- balance resilience and operational flexibility
+- combine with higher replica counts for redundancy
+- remember that PDBs do not cover involuntary disruptions
+- use monitoring to confirm pods remain available

@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/2 * * * *" # Every 2 minutes (for demo purposes)
+  successfulJobsHistoryLimit: 3 # Keep last 3 successful jobs
+  failedJobsHistoryLimit: 1 # Keep last 1 failed job
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: backup
+              image: postgres:15
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_PASSWORD
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+                  BACKUP_FILE="/backups/backup-$(date +%Y%m%d-%H%M%S).sql"
+                  echo "Starting backup to $BACKUP_FILE"
+
+                  # Dump the database
+                  pg_dump -h postgres -U postgres testdb > "$BACKUP_FILE"
+
+                  echo "Backup completed successfully"
+                  echo "Backup size: $(du -h $BACKUP_FILE | cut -f1)"
+
+                  # In production, upload to S3/GCS here:
+                  # aws s3 cp "$BACKUP_FILE" s3://my-bucket/backups/
+                  # or
+                  # gsutil cp "$BACKUP_FILE" gs://my-bucket/backups/
+
+                  echo "Listing all backups:"
+                  ls -lh /backups/
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+          restartPolicy: OnFailure

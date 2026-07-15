@@ -15,7 +15,7 @@ This lesson demonstrates a scheduled PostgreSQL backup pipeline using Kubernetes
 ```bash
 kubectl apply -f postgres.yaml
 kubectl get pods -l app=postgres -w
-kubectl exec -it deployment/postgres -- psql -U postgres -d testdb -c "CREATE TABLE users (id serial primary key, name text);"
+kubectl exec -it deployment/postgres -- psql -U postgres -d testdb -c "CREATE TABLE users (id serial primary key, name text, created_at timestamptz default now());"
 kubectl exec -it deployment/postgres -- psql -U postgres -d testdb -c "INSERT INTO users (name) VALUES ('Alice'),('Bob'),('Charlie');"
 kubectl exec -it deployment/postgres -- psql -U postgres -d testdb -c "SELECT * FROM users;"
 ```

@@ -34,6 +34,14 @@ spec:
 
 Then defines `jobTemplate` with container/image/command.
 
+## Apply and Verify
+
+```bash
+kubectl apply -f backup-cronjob.yaml
+kubectl get cronjobs
+kubectl get jobs -w
+```
+
 ## Best Practices
 
 - make workloads idempotent

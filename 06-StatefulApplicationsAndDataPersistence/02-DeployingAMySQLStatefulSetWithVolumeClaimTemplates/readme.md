@@ -26,10 +26,15 @@ Each PVC is bound to its corresponding pod ordinal identity and reattached on re
 
 ## How to Run
 
+Manifest file in this lesson:
+
+- `statefulset-headless-nginx.yaml`
+
 ```bash
-kubectl apply -f statefulset.yaml
-kubectl get statefulset
-kubectl get pods
+kubectl apply -f statefulset-headless-nginx.yaml
+kubectl get svc nginx
+kubectl get statefulset web
+kubectl get pods -l app=nginx
 kubectl get pvc
 kubectl get pv
 ```
@@ -47,7 +52,7 @@ Example commands:
 kubectl exec web-0 -- sh -c 'echo "Data persisted at $(date)" > /usr/share/nginx/html/test.txt'
 kubectl exec web-0 -- cat /usr/share/nginx/html/test.txt
 kubectl delete pod web-0
-kubectl get pods -w
+kubectl get pods -l app=nginx -w
 kubectl exec web-0 -- cat /usr/share/nginx/html/test.txt
 ```
 

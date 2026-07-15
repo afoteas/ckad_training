@@ -41,3 +41,30 @@ Example outcome:
 - StatefulSet (stateful): apartment lease, fixed identity and mailbox/storage
 
 If your app is truly stateless (no local data, no stable identity need), a Deployment is simpler.
+
+## Example StatefulSet YAML
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+	name: mysql
+spec:
+	serviceName: "mysql"
+	replicas: 3
+	selector:
+		matchLabels:
+			app: mysql
+	template:
+		metadata:
+			labels:
+				app: mysql
+		spec:
+			containers:
+				- name: mysql
+					image: mysql:8
+					ports:
+						- containerPort: 3306
+```
+
+This creates three ordered pods (`mysql-0`, `mysql-1`, `mysql-2`) under one StatefulSet controller.

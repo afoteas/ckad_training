@@ -21,6 +21,21 @@ Storage requirements grow over time. Kubernetes supports PVC expansion when prer
 3. Filesystem expands in pod (if supported)
 4. App keeps running during process in most cases
 
+## Example PVC Expansion YAML
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+	name: data-pvc
+spec:
+	resources:
+		requests:
+			storage: 20Gi # increased from 10Gi
+```
+
+This represents the updated PVC request size after expansion.
+
 ## Important Limitations
 
 - expansion is one-way (no native shrink)

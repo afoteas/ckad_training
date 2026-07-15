@@ -74,3 +74,29 @@ Cleanup:
 ```bash
 kubectl delete -f metrics-app-deployment.yaml
 ```
+
+## Extra Material: Prometheus Addon on Minikube
+
+If you want a full Prometheus server in your local cluster, enable the Minikube addon:
+
+```bash
+minikube addons enable prometheus
+```
+
+If you use a non-default profile:
+
+```bash
+minikube -p mini-ckad addons enable prometheus
+```
+
+Verify Prometheus pods:
+
+```bash
+kubectl -n kube-system get pods | grep -i prometheus
+```
+
+Open the Prometheus UI:
+
+```bash
+minikube -p mini-ckad service prometheus -n kube-system
+```

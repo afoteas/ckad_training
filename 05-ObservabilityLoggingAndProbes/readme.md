@@ -21,3 +21,13 @@ This module covers Kubernetes health checks, logging workflows, and metrics obse
 - how to install and verify metrics-server for CPU and memory visibility
 - Prometheus architecture, exporters, and PromQL basics
 - how to expose custom application metrics for Prometheus scraping
+
+## Objectives 
+- describe the liveness, readiness, and startup probes in Kubernetes, including when to use each
+- implement readiness and liveness probes with custom thresholds
+- use startup probes to delay other checks during application bootstrapping
+- identify where logs are stored and how to collect them
+- use `kubectl logs` and `events` to troubleshoot containers
+- deploy the `metrics-server` and validate CPU/memory visibility
+- outline how to scrape metrics and the basics of Prometheus queries (`PromQL`)
+- instrument app code to export custom metrics to Prometheus

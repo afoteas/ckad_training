@@ -14,26 +14,49 @@ When `startupProbe` is present:
 
 ## Example
 
+Manifest file: `deployment-with-startup-probes.yaml`
+
+The demo runs a `busybox` container that simulates a slow boot by sleeping 30 seconds
+before staying alive. All three probes use a lightweight `exec` check (`cat /dev/null`):
+
 ```yaml
+# Startup: allows up to 50s (10s x 5) for the container to finish booting.
 startupProbe:
   exec:
-    command: ["cat", "/tmp/app-ready"]
+    command:
+      - cat
+      - /dev/null
   periodSeconds: 10
   failureThreshold: 5
 
+# Liveness: aggressive (10s tolerance). The startup probe protects it during boot.
 livenessProbe:
   exec:
-    command: ["cat", "/tmp/app-ready"]
+    command:
+      - cat
+      - /dev/null
+  periodSeconds: 5
+  failureThreshold: 2
+
+# Readiness: aggressive (10s tolerance) to control Service traffic.
+readinessProbe:
+  exec:
+    command:
+      - cat
+      - /dev/null
   periodSeconds: 5
   failureThreshold: 2
 ```
 
-This allows up to 50 seconds of startup grace before restart logic triggers.
+Because the liveness/readiness probes are aggressive (restart/deregister after ~10s),
+without the startup probe the 30s boot would trigger a `CrashLoopBackOff`. The startup
+probe holds them off for up to 50s, letting the app finish starting.
 
 ## Verification
 
 ```bash
-kubectl apply -f startup-probe-demo.yaml
-kubectl get pods
-kubectl describe pod <pod-name>
+kubectl apply -f deployment-with-startup-probes.yaml
+kubectl get pods -l app=slow-start-app -w
+kubectl describe pod -l app=slow-start-app
+kubectl logs -l app=slow-start-app --tail=100
 ```

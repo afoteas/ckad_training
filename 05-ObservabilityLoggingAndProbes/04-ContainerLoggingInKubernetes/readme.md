@@ -15,6 +15,19 @@ Kubernetes logging starts with application output to stdout/stderr and extends t
 - node-level DaemonSet collectors (for example Fluentd/Filebeat)
 - central backends (Elasticsearch, Splunk, Cloud Logging)
 
+## Example: Using kubectl logs
+
+```bash
+# Get logs for a single Pod
+kubectl logs my-pod
+
+# Get logs for a specific container in a Pod
+kubectl logs my-pod -c container-name
+
+# Stream logs in real time
+kubectl logs -f my-pod
+```
+
 ## Best Practices
 
 - use structured logs (JSON with labels like level, requestId)

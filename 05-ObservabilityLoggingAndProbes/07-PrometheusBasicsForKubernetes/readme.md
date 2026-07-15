@@ -14,6 +14,12 @@ Prometheus is the de facto metrics system for Kubernetes observability.
 
 Prometheus scrapes HTTP metrics endpoints at configured intervals.
 
+## Exporters in Kubernetes
+
+1. `node-exporter`: collects node-level metrics such as CPU, memory, filesystem, and network.
+2. `cAdvisor`: provides container-level performance metrics (CPU, memory, I/O, filesystem usage).
+3. `kube-state-metrics`: exposes Kubernetes object state metrics (for example deployments, pods, replicas, jobs).
+
 ## PromQL Examples
 
 ```promql

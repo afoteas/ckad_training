@@ -1,0 +1,11 @@
+apiVersion: demo.example.com/v1
+kind: Application
+metadata:
+  name: nginx-app
+  namespace: default
+spec:
+  appName: "My Nginx Application"
+  replicas: 3
+  image: "nginx:1.25"
+  port: 80
+  environment: prod

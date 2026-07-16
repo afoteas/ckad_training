@@ -1,0 +1,94 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # Name must be in the form: <plural>.<group>
+  name: applications.demo.example.com
+spec:
+  # Group name to use for REST API: /apis/<group>/<version>
+  group: demo.example.com
+
+  # List of versions supported by this CustomResourceDefinition
+  versions:
+    - name: v1
+      # Each version can be enabled/disabled independently
+      served: true
+      # One and only one version must be marked as storage version
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                # Define the fields for our custom resource
+                appName:
+                  type: string
+                  description: Name of the application
+                replicas:
+                  type: integer
+                  description: Number of replicas
+                  minimum: 1
+                  maximum: 10
+                image:
+                  type: string
+                  description: Container image to use
+                port:
+                  type: integer
+                  description: Port the application listens on
+                  minimum: 1
+                  maximum: 65535
+                environment:
+                  type: string
+                  description: Environment (dev, staging, prod)
+                  enum:
+                    - dev
+                    - staging
+                    - prod
+              required:
+                - appName
+                - replicas
+                - image
+            status:
+              type: object
+              properties:
+                state:
+                  type: string
+                  description: Current state of the application
+                lastUpdated:
+                  type: string
+                  format: date-time
+                  description: Last status update timestamp
+      # Subresources for the custom resource
+      subresources:
+        # Status enables the status subresource
+        status: {}
+      # Additional printer columns to show with kubectl get
+      additionalPrinterColumns:
+        - name: App Name
+          type: string
+          jsonPath: .spec.appName
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Image
+          type: string
+          jsonPath: .spec.image
+        - name: Environment
+          type: string
+          jsonPath: .spec.environment
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  # Either Namespaced or Cluster
+  scope: Namespaced
+  names:
+    # Plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: applications
+    # Singular name to be used as an alias on the CLI and for display
+    singular: application
+    # Kind is normally the CamelCased singular type
+    kind: Application
+    # ShortNames allow shorter string to match your resource on the CLI
+    shortNames:
+      - app

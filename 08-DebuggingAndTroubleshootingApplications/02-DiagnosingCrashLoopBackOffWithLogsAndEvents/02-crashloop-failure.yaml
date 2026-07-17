@@ -1,0 +1,21 @@
+# This Pod demonstrates a CrashLoopBackOff error.
+# The container starts, prints logs, then exits with code 1.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop-demo
+  labels:
+    app: demo
+spec:
+  restartPolicy: Always
+  containers:
+    - name: crashloop
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          echo "Starting application..."
+          sleep 2
+          echo "fatal error occurred"
+          exit 1

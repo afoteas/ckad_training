@@ -149,3 +149,69 @@ kubectl get pods -A
 - Applies to both minikube and kind since they share the WSL2 kernel.
 - If limits reset after a full Windows reboot, confirm `/etc/sysctl.d/99-inotify.conf`
   is present and re-run `sudo sysctl -p /etc/sysctl.d/99-inotify.conf`.
+
+## kind cluster becomes unreachable
+
+### Issue
+
+Cluster operations started failing because the kind API server became unreachable.
+Common commands (for example `kubectl get`, `kubectl apply`, and `kubectl cluster-info`)
+returned connection errors such as:
+
+- `failed to download openapi`
+- `dial tcp 127.0.0.1:<port>: connect: connection refused`
+
+Example:
+
+```bash
+kubectl apply -f myapp-with-sidecar.yaml
+```
+
+This blocked normal cluster access and deployment workflows.
+
+### Root Cause
+
+The kind control-plane container (`ckad-control-plane`) had stopped (`Exited 128`),
+while worker node containers were still running. kubeconfig contexts still pointed
+to a localhost API server endpoint, but no API server process was listening there.
+
+### Applied Solution
+
+Used a non-destructive recovery instead of deleting/recreating the cluster:
+
+1. Confirm control-plane status:
+
+   ```bash
+   docker ps -a --format 'table {{.Names}}\t{{.Status}}' | grep ckad-
+   ```
+
+2. Start the existing control-plane container:
+
+   ```bash
+   docker start ckad-control-plane
+   ```
+
+3. Retry kubectl commands:
+
+   ```bash
+   kubectl --context kind-ckad cluster-info
+   kubectl --context kind-ckad get nodes
+   ```
+
+### Verification
+
+```bash
+kubectl --context kind-ckad cluster-info
+kubectl --context kind-ckad get nodes
+kubectl --context kind-ckad get pod myapp-with-sidecar -o wide
+```
+
+Result: cluster connectivity was restored and workloads were reachable/running again.
+
+### Notes
+
+- This error is usually control-plane availability, not an application manifest problem.
+- `--validate=false` can bypass local schema validation, but it does not fix an
+  unreachable API server.
+- If the endpoint/credentials drift after restarts, refresh kubeconfig with:
+  `kind export kubeconfig --name ckad`.

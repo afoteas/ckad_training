@@ -1,0 +1,17 @@
+# This Pod demonstrates an ImagePullBackOff error
+# ImagePullBackOff occurs when Kubernetes cannot pull the container image from the registry
+# Common causes: typo in image name, wrong tag, private registry without credentials
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: imagepull-demo
+  labels:
+    app: demo
+spec:
+  containers:
+    - name: web
+      # This image tag doesn't exist - it will fail to pull
+      image: nginx:this-tag-does-not-exist-12345
+      ports:
+        - containerPort: 80

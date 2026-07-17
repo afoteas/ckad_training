@@ -1,0 +1,51 @@
+# This pod has a busybox sidecar container added
+# The sidecar can explore the same volumes and environment as the main container
+# It runs indefinitely so we can exec into it
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-with-sidecar
+  labels:
+    app: demo
+spec:
+  containers:
+  # Main application container
+  - name: nginx
+    image: nginx:alpine
+    ports:
+    - containerPort: 80
+    env:
+    - name: APP_ENV
+      value: "production"
+    - name: DATABASE_HOST
+      value: "db.example.com"
+    volumeMounts:
+    - name: config
+      mountPath: /etc/nginx/conf.d
+    - name: shared-data
+      mountPath: /usr/share/nginx/html
+
+  # Busybox sidecar for debugging
+  - name: busybox-sidecar
+    image: busybox
+    # Keep the container running indefinitely
+    command: ["sh", "-c", "while true; do sleep 3600; done"]
+    # Mount the same volumes to inspect shared data
+    volumeMounts:
+    - name: config
+      mountPath: /etc/nginx/conf.d
+    - name: shared-data
+      mountPath: /usr/share/nginx/html
+    # Optionally share some environment variables
+    env:
+    - name: DEBUG_MODE
+      value: "true"
+    - name: SIDECAR_PURPOSE
+      value: "debugging"
+
+  volumes:
+  - name: config
+    emptyDir: {}
+  - name: shared-data
+    emptyDir: {}

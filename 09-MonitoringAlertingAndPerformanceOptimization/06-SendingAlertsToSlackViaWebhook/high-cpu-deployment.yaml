@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-hog
+  labels:
+    app: cpu-hog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cpu-hog
+  template:
+    metadata:
+      labels:
+        app: cpu-hog
+    spec:
+      containers:
+      - name: stress-container
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            while true; do
+              i=0
+              while [ $i -lt 100000000 ]; do
+                i=$((i + 1))
+              done
+              sleep 0.1
+            done
+        resources:
+          limits:
+            cpu: "100m" # Limit to 0.1 CPU core, ensuring it stresses the limit

@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: high-cpu-alert
+  namespace: monitoring # Assuming Prometheus/Alertmanager are in the 'monitoring' namespace
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+  - name: kubernetes-apps
+    rules:
+    - alert: HighCpuUsage
+      expr: |
+        sum(rate(container_cpu_usage_seconds_total{container!="", pod!=""}[2m])) by (pod, namespace) * 100
+        > 1
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is using high CPU."
+        description: "The container CPU usage has been over 1% for 1 minute."
+        value: '{{ $value }}'

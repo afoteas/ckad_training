@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: unique-chunk-worker-job
+spec:
+  # Total number of unique, successful Pods required to complete the Job (Indices 0 through 9)
+  completions: 10 
+  # Maximum number of Pods that should run at the same time
+  parallelism: 5 
+  # This is the key setting: it ensures each Pod gets a unique index (0 to 9)
+  completionMode: Indexed 
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: chunk-processor
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Total chunks to process: 50
+            TOTAL_CHUNKS=50
+            # Number of workers (same as spec.completions)
+            NUM_WORKERS=10
+            # Chunk processing rate: 50 chunks / 10 workers = 5 chunks per worker
+            CHUNKS_PER_WORKER=$(($TOTAL_CHUNKS / $NUM_WORKERS))
+
+            # The current worker's unique index (0-9) is automatically set by Kubernetes
+            INDEX=$JOB_COMPLETION_INDEX
+            
+            # Calculate the start and end chunk IDs for this worker
+            START_CHUNK=$(($INDEX * $CHUNKS_PER_WORKER + 1))
+            END_CHUNK=$(($START_CHUNK + $CHUNKS_PER_WORKER - 1))
+
+            echo "--- Worker Pool Job Demo ---"
+            echo "I am Worker with unique Index: $INDEX"
+            echo "My assigned work is to process Chunks $START_CHUNK through $END_CHUNK."
+            
+            # Simulate work for a few seconds
+            sleep 5 
+            
+            echo "Processing complete for my assigned range."

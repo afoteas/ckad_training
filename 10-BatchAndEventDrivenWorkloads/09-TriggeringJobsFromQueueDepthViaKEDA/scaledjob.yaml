@@ -1,0 +1,45 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: azure-queue-processor
+  labels:
+    app: azure-queue-processor
+spec:
+  # The maximum number of jobs KEDA will create concurrently
+  maxReplicaCount: 5 
+  # KEDA's polling interval (how often it checks the queue)
+  pollingInterval: 10
+  jobTargetRef:
+    # Template for the Kubernetes Job that KEDA will create
+    template:
+      spec:
+        # A simple container image that will exit after processing
+        containers:
+        - name: worker
+          image: mcr.microsoft.com/azure-cli:latest
+          command: ["/bin/bash", "-c"]
+          args:
+          - |
+            # A placeholder script: in a real app, this would read from the queue, 
+            # process the message, and then delete the message.
+            echo "--- Job starting to process queue messages ---"
+            echo "This simulated job will sleep for 20 seconds."
+            sleep 20
+            echo "--- Job finished processing ---"
+          env:
+            # Pass the connection string from the Secret to the Job's container
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: azure-queue-auth
+                key: STORAGE_CONNECTIONSTRING
+        restartPolicy: Never
+  triggers:
+  - type: azure-queue
+    metadata:
+      # The name of the queue to monitor
+      queueName: "process-tasks" 
+      # The target message count. For every 2 messages, KEDA will create 1 Job (up to maxReplicaCount)
+      queueLength: "2" 
+      # Name of the environment variable containing the connection string
+      connectionFromEnv: AZURE_STORAGE_CONNECTION_STRING 

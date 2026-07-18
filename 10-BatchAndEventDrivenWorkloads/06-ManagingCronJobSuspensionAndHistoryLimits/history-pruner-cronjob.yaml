@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-pruner-cronjob
+spec:
+  # Run every minute for rapid testing
+  schedule: "*/1 * * * *"
+  # --- History Pruning Configuration ---
+  # Only keep the 2 most recent successful Jobs
+  successfulJobsHistoryLimit: 2
+  # Only keep the 1 most recent failed Job
+  failedJobsHistoryLimit: 1
+  # The initial state is active
+  suspend: false
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: job-task
+            image: busybox
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                # Generates a random number between 0 and 4
+                RAND=$(( $RANDOM % 5 ))
+                echo "Running task at $(date). Random value is $RAND."
+                
+                # Fails if RAND is 4 (20% chance of failure)
+                if [ $RAND -gt 3 ]; then
+                  echo "--- Task failed on purpose to test failedJobsHistoryLimit ---"
+                  exit 1
+                else
+                  echo "--- Task succeeded to test successfulJobsHistoryLimit ---"
+                  exit 0
+                fi

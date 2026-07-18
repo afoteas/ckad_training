@@ -215,3 +215,83 @@ Result: cluster connectivity was restored and workloads were reachable/running a
   unreachable API server.
 - If the endpoint/credentials drift after restarts, refresh kubeconfig with:
   `kind export kubeconfig --name ckad`.
+
+## kubectl top Reports "no metrics available" on kind
+
+### Issue
+
+On kind clusters, `kubectl top pod` and `kubectl top node` return errors or show no data:
+
+```bash
+$ kubectl top node
+error: Metrics not available yet.
+
+$ kubectl top pod
+error: unable to compute resource metrics from pods: not all metrics are ready for pods
+```
+
+This blocks profiling and performance analysis on local clusters.
+
+### Root Cause
+
+kind clusters do not come with the Metrics Server preinstalled. The Metrics Server is a core Kubernetes component that collects resource usage data from kubelet and cAdvisor on each node and makes it available via the Metrics API. Without it, `kubectl top` has no data source.
+
+Additionally, kind nodes run as Docker containers using self-signed certificates, so the Metrics Server's TLS validation must be disabled.
+
+### Applied Solution
+
+1. Install Metrics Server:
+
+   ```bash
+   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+   ```
+
+2. Patch the Metrics Server deployment to disable TLS validation (required for kind's self-signed certs):
+
+   ```bash
+   kubectl patch deployment metrics-server -n kube-system --type='json' \
+     -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--kubelet-insecure-tls"}]'
+   ```
+
+3. Patch to ensure the Metrics Server can find the kubelet on the correct address:
+
+   ```bash
+   kubectl patch deployment metrics-server -n kube-system --type='json' \
+     -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--kubelet-preferred-address-types=InternalIP"}]'
+   ```
+
+4. Wait for the deployment to roll out:
+
+   ```bash
+   kubectl rollout status deployment/metrics-server -n kube-system
+   ```
+
+5. Wait an additional 30 seconds for initial metrics collection, then test:
+
+   ```bash
+   kubectl top node
+   kubectl top pod --all-namespaces
+   ```
+
+### Verification
+
+```bash
+# Confirm Metrics Server is running
+kubectl get deployment metrics-server -n kube-system
+
+# Confirm metrics are available
+kubectl top node
+kubectl top pod -A
+
+# Check Metrics Server logs if still failing
+kubectl logs -n kube-system deployment/metrics-server
+```
+
+Result: `kubectl top` commands now display CPU and memory usage for all nodes and pods.
+
+### Notes
+
+- Metrics Server requires a Linux node environment; on Windows-based minikube, it may not function fully.
+- This setup is only needed once per kind cluster; deleting and recreating the cluster requires re-running these steps.
+- If metrics still do not appear after 30 seconds, check Metrics Server logs for TLS or connection errors.
+- For production clusters (EKS, GKE, AKS), Metrics Server is pre-installed and these steps are not needed.

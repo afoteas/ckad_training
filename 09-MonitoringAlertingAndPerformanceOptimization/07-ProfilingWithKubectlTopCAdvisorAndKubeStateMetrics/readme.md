@@ -2,6 +2,55 @@
 
 Profiling measures how much CPU, memory, and network resources applications actually consume, enabling right-sizing and early detection of resource exhaustion.
 
+## Enable kubectl top on your Cluster
+
+`kubectl top` requires the Metrics Server to be installed on the cluster. On managed clusters (EKS, GKE, AKS) it is pre-installed. On local clusters like `kind`, you must install it manually.
+
+### Check if Metrics Server is Already Installed
+
+```bash
+kubectl get deployment metrics-server --namespace kube-system
+```
+
+If no deployment exists, install it.
+
+### Install Metrics Server on kind
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+### For kind, Patch to Disable TLS Certificate Validation
+
+kind nodes run as containers and use self-signed certificates. Metrics Server must skip validation:
+
+```bash
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--kubelet-insecure-tls"}]'
+```
+
+Also ensure the metrics-server pod can access the kubelet:
+
+```bash
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--kubelet-preferred-address-types=InternalIP"}]'
+```
+
+### Verify Installation
+
+```bash
+kubectl get deployment metrics-server -n kube-system
+
+# Wait for the deployment to be ready (1/1 ready)
+kubectl rollout status deployment/metrics-server -n kube-system
+
+# Test kubectl top
+kubectl top node
+kubectl top pod --all-namespaces
+```
+
+If `kubectl top` still shows "no metrics available," wait 30 seconds and retry; the Metrics Server needs time to collect initial data.
+
 ## Three-Layer Toolchain
 
 ### 1. kubectl top — immediate snapshot

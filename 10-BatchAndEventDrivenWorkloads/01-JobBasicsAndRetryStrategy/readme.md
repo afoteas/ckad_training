@@ -49,6 +49,46 @@ When a pod fails (exits with non-zero code):
 4. Between attempts, exponential backoff delay increases
 5. Once `backoffLimit` is exceeded, Job is marked **Failed**
 
+## Example YAML Job
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: example-job
+spec:
+  completions: 3
+  parallelism: 2
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: pi
+        image: perl
+        command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+      restartPolicy: Never
+```
+
+- Runs 3 successful Pods
+- Two Pods at a time (`parallelism=2`)
+- Retries failed Pods up to 4 times
+
+## Full Job Spec Reference
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `completions` | integer | 1 | Number of pods that must complete successfully |
+| `parallelism` | integer | 1 | Max pods running simultaneously |
+| `backoffLimit` | integer | 6 | Max retries before Job is marked Failed |
+| `activeDeadlineSeconds` | integer | none | Max wall-clock time for the entire Job |
+| `ttlSecondsAfterFinished` | integer | none | Auto-delete Job N seconds after completion |
+| `suspend` | boolean | false | Pause the Job (no new pods scheduled) |
+| `completionMode` | string | `NonIndexed` | `NonIndexed` (any pod counts) or `Indexed` (each pod gets a unique index) |
+| `manualSelector` | boolean | false | Allow custom pod selector instead of auto-generated |
+| `selector` | object | auto | Label selector for pods (used with `manualSelector: true`) |
+| `podFailurePolicy` | object | none | Rules for handling specific pod failure conditions (exit codes, conditions) |
+| `template.spec.restartPolicy` | string | — | Must be `Never` or `OnFailure` for Jobs |
+
 ## Best Practices
 
 - always set `restartPolicy: Never` in the pod template

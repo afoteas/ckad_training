@@ -8,24 +8,13 @@ A nightly data cleanup script connects to a remote database. Occasionally the co
 
 ## YAML Example
 
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: retry-on-failure-job
-spec:
-  backoffLimit: 5          # up to 5 total attempts (original + 4 retries)
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: worker
-          image: myimage:1.0
-          command: ["/bin/sh", "-c"]
-          args: ["script.sh"]
-```
+See [retrying-job.yaml](retrying-job.yaml) for the full example. 
 
-If your script is designed to fail 3 times before succeeding on the 4th attempt, `backoffLimit: 5` provides enough room for success within the limit.
+Key points:
+- `backoffLimit: 5` allows up to 5 total attempts (original + 4 retries)
+- `restartPolicy: OnFailure` tells the kubelet to restart the pod container on failure, incrementing the retry counter
+- The example uses an `emptyDir` volume to track failed attempts across restarts
+- Once it succeeds on the 4th attempt, the Job completes
 
 ## Deploy and Monitor
 

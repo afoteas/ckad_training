@@ -17,7 +17,6 @@ This module focuses on three core Kubernetes operations themes:
 7. `07-TaintingNodesAndApplyingTolerations`
 8. `08-HorizontalPodAutoscalingBasics`
 9. `09-ImplementingHPAInALiveApp`
-10. `10-CourseSummary`
 
 ## Learning Objectives
 

@@ -15,7 +15,7 @@ In the container `resources` block:
 
 ## Demo Flow
 
-1. Create a deployment manifest (for example `constrained-nginx-deployment.yaml`) with `resources.requests` and `resources.limits`.
+1. Use the provided deployment manifest `../03-ResourceQuotasAndLimitRanges/constrained-app.yaml` (or create your own) with `resources.requests` and `resources.limits`.
 2. Apply the deployment.
 3. Confirm deployment status.
 4. Inspect Pod details and verify requests/limits are present.
@@ -23,7 +23,7 @@ In the container `resources` block:
 ## Example Commands
 
 ```bash
-kubectl apply -f constrained-nginx-deployment.yaml
+kubectl apply -f ../03-ResourceQuotasAndLimitRanges/constrained-app.yaml
 kubectl get deployment constrained-nginx-deployment
 kubectl get pods
 

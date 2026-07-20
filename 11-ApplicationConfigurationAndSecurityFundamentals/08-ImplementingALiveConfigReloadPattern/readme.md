@@ -54,6 +54,18 @@ Files in this lesson:
 - `updated-configmap.yaml`
 - `reloader-app-deployment.yaml`
 
+Install Reloader in the cluster (one-time setup):
+
+```bash
+helm repo add stakater https://stakater.github.io/stakater-charts
+helm repo update
+kubectl create namespace reloader --dry-run=client -o yaml | kubectl apply -f -
+helm install reloader stakater/reloader -n reloader
+kubectl get pods -n reloader
+```
+
+Once Reloader is running, it watches workloads that include the annotation `reloader.stakater.com/auto: "true"`.
+
 Apply the initial configuration and the Deployment:
 
 ```bash

@@ -59,6 +59,27 @@ Set `readOnlyRootFilesystem: true` to make it harder for an attacker to write ma
 
 Linux capabilities split root privileges into smaller pieces. Only grant the ones the application truly needs.
 
+## Example: SecurityContext YAML
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+	name: secure-pod
+spec:
+	securityContext:
+		runAsUser: 1000
+		fsGroup: 2000
+	containers:
+		- name: app
+			image: nginx
+			securityContext:
+				allowPrivilegeEscalation: false
+				readOnlyRootFilesystem: true
+```
+
+This example combines pod-level defaults (`runAsUser`, `fsGroup`) with container-level hardening (`allowPrivilegeEscalation`, `readOnlyRootFilesystem`).
+
 ## Pod Security Standards (PSS)
 
 Pod Security Standards define three security policy levels for namespaces.

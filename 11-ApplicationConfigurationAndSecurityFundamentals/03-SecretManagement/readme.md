@@ -76,6 +76,25 @@ A typical Secret:
 
 Kubernetes automatically decodes them when the Pod consumes the Secret.
 
+## Example: Secret YAML
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+	name: db-secret
+type: Opaque
+data:
+	username: YWRtaW4=      # base64 for "admin"
+	password: MWYyZDF1MmU2N2Rm # base64 sample password
+```
+
+This format is common for Opaque secrets: define key names under `data` and provide base64-encoded values.
+
+
+Run `echo -n "plain-text" | base64` to generate the base64-encoded value for your own secrets.
+Run `echo -n "base64-value" | base64 --decode` to decode a base64-encoded value back to plaintext.
+
 ## Best Practices
 
 - Never store sensitive values in ConfigMaps.

@@ -80,6 +80,20 @@ A simple ConfigMap typically contains straightforward key-value data such as:
 
 Those keys can then be consumed either as environment variables or as mounted files.
 
+## Example: ConfigMap YAML
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+	name: app-config
+data:
+	APP_MODE: "production"
+	APP_PORT: "8080"
+```
+
+In this example, both values are non-sensitive application settings and can be injected as environment variables or mounted as files.
+
 ## Best Practices
 
 - Never put secrets, passwords, tokens, or API keys into ConfigMaps.

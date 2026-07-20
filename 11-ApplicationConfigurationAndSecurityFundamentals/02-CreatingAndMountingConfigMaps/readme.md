@@ -99,6 +99,22 @@ Example verification flow:
 ```bash
 POD=$(kubectl get pods -l app=config-demo -o jsonpath='{.items[0].metadata.name}')
 kubectl logs "$POD"
+
+# Alternative: fetch logs from all pods matching the app label
+kubectl logs -l app=config-demo --all-containers=true --max-log-requests=20 --tail=-1
+```
+
+Option breakdown for the command above:
+
+- `-l app=config-demo`: selects all Pods with label `app=config-demo`
+- `--all-containers=true`: includes logs from every container in each selected Pod
+- `--max-log-requests=20`: caps concurrent log streams when multiple Pods match
+- `--tail=-1`: returns full available logs instead of truncating to recent lines
+
+If you want live streaming, add `-f`:
+
+```bash
+kubectl logs -f -l app=config-demo --all-containers=true --max-log-requests=20 --tail=-1
 ```
 
 ## What This Proves

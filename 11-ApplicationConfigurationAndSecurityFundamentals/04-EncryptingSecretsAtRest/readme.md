@@ -59,6 +59,35 @@ Files in this lesson:
 4. Create or update Secrets with `test-secret.yaml`.
 5. Re-write older Secrets so they are stored under the new encryption policy.
 
+### Using `encryption-config.yaml` with the API server
+
+On kubeadm-based control planes, a common pattern is:
+
+1. Copy `encryption-config.yaml` to a control-plane path, for example:
+
+```bash
+sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
+sudo chmod 600 /etc/kubernetes/encryption-config.yaml
+```
+
+2. Edit the API server static Pod manifest (`/etc/kubernetes/manifests/kube-apiserver.yaml`) and add:
+
+```yaml
+- --encryption-provider-config=/etc/kubernetes/encryption-config.yaml
+```
+
+3. Ensure the file is mounted into the API server container (hostPath + volumeMount) in the same manifest.
+
+4. Save the manifest and wait for kubelet to restart the API server static Pod.
+
+5. Verify the flag is active:
+
+```bash
+kubectl -n kube-system get pod -l component=kube-apiserver -o yaml | grep encryption-provider-config
+```
+
+If your environment is managed (EKS/GKE/AKS), this is provider-controlled and usually configured via platform settings, not direct manifest edits.
+
 Example Secret commands:
 
 ```bash

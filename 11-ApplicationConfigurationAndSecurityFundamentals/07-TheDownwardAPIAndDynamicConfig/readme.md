@@ -64,6 +64,30 @@ A container might receive:
 
 That allows the workload to enrich logs or dynamically inspect runtime metadata.
 
+## Example: YAML
+
+Manifest file:
+
+- `downwardapi-demo.yaml`
+
+This example injects the Pod name through an environment variable and writes Pod labels to `/etc/podinfo/labels`.
+
+Example usage:
+
+```bash
+kubectl apply -f downwardapi-demo.yaml
+kubectl get pod downwardapi-demo
+
+# Verify POD_NAME from env var
+kubectl exec downwardapi-demo -- printenv POD_NAME
+
+# Verify labels written by Downward API volume
+kubectl exec downwardapi-demo -- cat /etc/podinfo/labels
+
+# Cleanup
+kubectl delete -f downwardapi-demo.yaml
+```
+
 ## Best Practices
 
 - Use the Downward API only for non-sensitive self-referential metadata.

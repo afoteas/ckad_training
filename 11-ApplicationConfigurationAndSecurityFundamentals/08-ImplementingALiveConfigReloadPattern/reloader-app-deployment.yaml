@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reloader-app-demo
+  labels:
+    app: reloader-demo
+  # CRITICAL: This annotation tells the Reloader operator to watch 
+  # any ConfigMaps or Secrets that this Deployment consumes.
+  annotations:
+    reloader.stakater.com/auto: "true" 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reloader-demo
+  template:
+    metadata:
+      labels:
+        app: reloader-demo
+    spec:
+      containers:
+      - name: config-consumer
+        image: busybox:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Application started."
+          echo "Current APP_VERSION is: ${APP_VERSION}"
+          echo "Container PID: $$"
+          sleep infinity # Keep container running
+          
+        # Inject the value from the ConfigMap as an environment variable
+        env:
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: app-live-config # References the ConfigMap
+              key: app.version

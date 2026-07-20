@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rbac-test-app
+  labels:
+    app: rbac-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rbac-demo
+  template:
+    metadata:
+      labels:
+        app: rbac-demo
+    spec:
+      # CRITICAL: This line assigns the custom ServiceAccount to the Pod.
+      serviceAccountName: pod-reader 
+      containers:
+      - name: demo-client
+        image: bitnami/kubectl:latest # Use an image with kubectl installed for easy testing
+        # Command keeps the container running indefinitely
+        command: ["/bin/bash", "-c"]
+        args: ["echo 'RBAC test app running with pod-reader permissions.' && sleep infinity"]

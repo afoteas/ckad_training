@@ -1,0 +1,15 @@
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  # Apply encryption only to Secrets, leaving other resources (like ConfigMaps) unencrypted.
+  - resources:
+      - secrets
+    providers:
+      # Provider 1: AES-CBC Encryption
+      - aescbc:
+          keys:
+            # key 1: The key to be used for encryption (must be a 32-byte value, base64 encoded)
+            - name: key1
+              secret: bGlrZXRoZGVtbzEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNA== # Placeholder key
+      # Provider 2: Identity (used for decryption if data was previously unencrypted or encrypted with this provider)
+      - identity: {}

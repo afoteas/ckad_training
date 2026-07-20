@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-injector-demo
+  labels:
+    app: config-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-demo
+  template:
+    metadata:
+      labels:
+        app: config-demo
+    spec:
+      containers:
+      - name: config-tester
+        image: busybox:latest
+        
+        # Command runs checks and then keeps the container running
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "--- METHOD A: Environment Variable Check ---"
+          echo "Value of APP_LOG_LEVEL is: ${APP_LOG_LEVEL}"
+          
+          echo ""
+          
+          echo "--- METHOD B: Mounted File Check ---"
+          echo "Listing mounted configuration directory (/etc/config):"
+          ls -l /etc/config/
+          
+          echo ""
+          echo "Displaying content of app_config.properties:"
+          cat /etc/config/app_config.properties
+          
+          echo ""
+          echo "Config injection successful. Waiting..."
+          tail -f /dev/null # Keep container running
+        
+        # 1. Method A: Inject ConfigMap key as an environment variable
+        env:
+        - name: APP_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: app-settings # Reference the ConfigMap by name
+              key: log_level    # Reference the specific key to inject
+              
+        # 2. Method B: Inject ConfigMap as a mounted volume
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config # Mount all files from the ConfigMap here
+          
+      # 3. Define the volume source (pointing to the ConfigMap)
+      volumes:
+      - name: config-volume
+        configMap:
+          name: app-settings # Reference the ConfigMap by name

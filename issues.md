@@ -295,3 +295,85 @@ Result: `kubectl top` commands now display CPU and memory usage for all nodes an
 - This setup is only needed once per kind cluster; deleting and recreating the cluster requires re-running these steps.
 - If metrics still do not appear after 30 seconds, check Metrics Server logs for TLS or connection errors.
 - For production clusters (EKS, GKE, AKS), Metrics Server is pre-installed and these steps are not needed.
+
+## Argo CD Repo Sync Fails with Zscaler TLS Error
+
+### Issue
+
+Behind the Zscaler TLS-inspecting proxy, Argo CD fails to read the Git repository and
+the Application shows:
+
+- `failed to list refs: ... tls: failed to verify certificate: x509: certificate signed by unknown authority`
+
+Example source URL that failed:
+
+```text
+https://github.com/argoproj/argocd-example-apps/info/refs?service=git-upload-pack
+```
+
+### Root Cause
+
+Argo CD runs its Git operations inside the `argocd-repo-server` pod, which uses its own
+container trust store — not the WSL2 host trust store. Zscaler re-signs the connection to
+`github.com` with its own root CA, which the repo-server does not trust by default, so
+`git ls-remote` fails certificate verification.
+
+### Applied Solution
+
+Argo CD reads per-repository-host TLS certificates from the `argocd-tls-certs-cm`
+ConfigMap in the `argocd` namespace, keyed by hostname. Inject the Zscaler root CA for
+`github.com`:
+
+1. Add the Zscaler root CA for the `github.com` host. Easiest with the Argo CD CLI:
+
+   ```bash
+   argocd cert add-tls github.com --from ~/certs/zscaler-root-ca.crt --upsert
+   ```
+
+   Or, without the CLI, load it straight into the ConfigMap with `kubectl`:
+
+   ```bash
+   kubectl -n argocd create configmap argocd-tls-certs-cm \
+     --from-file=github.com=$HOME/certs/zscaler-root-ca.crt \
+     --dry-run=client -o yaml | kubectl apply -f -
+   ```
+
+2. Restart the repo-server so it reloads the mounted certificate:
+
+   ```bash
+   kubectl -n argocd rollout restart deploy argocd-repo-server
+   kubectl -n argocd rollout status deploy argocd-repo-server --timeout=120s
+   ```
+
+3. Force a hard refresh of the Application:
+
+   ```bash
+   kubectl -n argocd patch application nginx-app --type merge \
+     -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+   ```
+
+For multiple Git hosts, add one key per hostname (for example `raw.githubusercontent.com`).
+When installing via Helm, the same certs can be provided declaratively through the chart's
+`configs.tls.certificates` values so they survive upgrades.
+
+### Verification
+
+```bash
+# No TLS error should remain in the Application conditions
+kubectl -n argocd get application nginx-app -o jsonpath='{.status.conditions}'; echo
+
+# Sync status should now be readable (e.g. OutOfSync/Synced), not Unknown with a TLS error
+kubectl -n argocd get application nginx-app \
+  -o jsonpath='Sync={.status.sync.status} Health={.status.health.status}'; echo
+```
+
+Result: the `x509: certificate signed by unknown authority` error disappears and Argo CD
+can list refs and generate manifests from the repository.
+
+### Notes
+
+- This is the secure alternative to `--insecure-skip-server-verification`; certificate
+  verification stays enabled, only the corporate CA is trusted.
+- Only the Zscaler root CA is required here because Zscaler re-signs with that root; if an
+  intermediate is presented, append it to the same PEM value.
+- The `argocd-tls-certs-cm` key must be the exact hostname (no scheme, no path).

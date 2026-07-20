@@ -13,6 +13,7 @@ This module covers Kubernetes workloads designed to run one or more tasks to com
 7. `07-CleaningUpWithTTLSecondsAfterFinished`
 8. `08-EventDrivenAutoscalingWithKEDA`
 9. `09-TriggeringJobsFromQueueDepthViaKEDA`
+10. `10-JobSetForCoordinatedMultiJobWorkloads`
 
 ## What You Learn
 
@@ -24,6 +25,7 @@ This module covers Kubernetes workloads designed to run one or more tasks to com
 - how to automatically clean up finished Jobs using TTLSecondsAfterFinished
 - how KEDA enables event-driven autoscaling based on external metrics
 - how to combine Jobs and KEDA for queue-driven batch processing
+- how JobSet coordinates multiple Jobs as a single unit for distributed workloads
 
 ## Objectives
 
@@ -35,3 +37,4 @@ This module covers Kubernetes workloads designed to run one or more tasks to com
 - enable automatic cleanup of completed Job objects
 - install and configure KEDA for event-driven scaling
 - scale Kubernetes deployments based on external queue depth
+- orchestrate a leader/worker JobSet with group-level success policy

@@ -6,38 +6,6 @@ This demo shows how to configure a CronJob with explicit history limits to prune
 
 A backup CronJob runs every hour. Over time, successful and failed jobs accumulate, cluttering the cluster and slowing etcd. Policy: keep only the 2 most recent successful backups and 1 failed backup. Additionally, suspend the CronJob during a 2-hour maintenance window.
 
-## YAML Example with History Limits
-
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: backup-pruner-cronjob
-spec:
-  schedule: "* * * * *"                    # Every minute (for testing)
-  successfulJobsHistoryLimit: 2            # Keep only 2 successful Jobs
-  failedJobsHistoryLimit: 1                # Keep only 1 failed Job
-  concurrencyPolicy: Allow
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-            - name: backup
-              image: backup-worker:1.0
-              command: ["/bin/sh", "-c"]
-              args:
-                - |
-                  RAND=$RANDOM
-                  if [ $((RAND % 5)) -eq 0 ]; then
-                    exit 1  # ~20% chance of failure for testing
-                  else
-                    echo "Backup succeeded"
-                    exit 0
-                  fi
-```
-
 ## Deploy
 
 ```bash
@@ -67,6 +35,30 @@ kubectl get jobs
 ```
 
 The CronJob controller automatically deletes old Jobs as they exceed the configured limits.
+
+## Read CronJob Logs
+
+You cannot read logs directly from the CronJob object. A CronJob creates Jobs, and those Jobs create Pods. Read logs from the latest generated Job or its Pods.
+
+```bash
+# Find the most recently created Job for this CronJob
+JOB=$(kubectl get jobs --sort-by=.metadata.creationTimestamp -o name \
+  | grep 'job.batch/backup-pruner-cronjob-' \
+  | tail -n 1 \
+  | cut -d/ -f2)
+
+# Stream logs from that Job
+kubectl logs -f job/"$JOB"
+
+# Or stream logs from all Pods belonging to that Job
+kubectl logs -f -l job-name="$JOB" --all-containers=true --max-log-requests=20
+```
+
+To list all Jobs created by this CronJob:
+
+```bash
+kubectl get jobs | grep '^backup-pruner-cronjob-'
+```
 
 ## Suspend the CronJob
 

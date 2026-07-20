@@ -43,6 +43,8 @@ kubectl apply -f indexed-worker-job.yaml
 
 # Watch completions increase: 0/10 → 5/10 → 10/10
 kubectl get job unique-chunk-worker-job --watch
+
+kubectl logs -l job-name=unique-chunk-worker-job --all-containers=true --max-log-requests=20
 ```
 
 ## Verify Index Assignment

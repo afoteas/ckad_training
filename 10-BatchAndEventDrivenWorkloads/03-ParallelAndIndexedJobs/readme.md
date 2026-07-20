@@ -6,10 +6,7 @@ For workloads that naturally divide into independent pieces, running them in par
 
 All pods run the **same logic** until a fixed completion count is met.
 
-```yaml
-completions: 4      # must run 4 successful pods
-parallelism: 2      # at most 2 running at the same time
-```
+In this mode, set `completions` to the total successful pods required and `parallelism` to the max pods running at once.
 
 The Job controller ensures:
 
@@ -23,11 +20,7 @@ The Job controller ensures:
 
 Each pod is automatically assigned a **unique integer index** (`JOB_COMPLETION_INDEX` environment variable).
 
-```yaml
-completions: 5
-parallelism: 5
-completionMode: Indexed    # activates unique index assignment
-```
+Enable indexed behavior with `completionMode: Indexed` and set `completions` to the number of unique indices required.
 
 The Job controller:
 
@@ -44,41 +37,71 @@ The Job controller:
 - **map-reduce**: map phase distributes data chunks to pods
 - **video/image processing**: each pod processes a unique video or image
 
-## Example: Processing 50 Data Chunks with 10 Workers
+## Manifests in This Lesson
 
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: chunk-processor
-spec:
-  completions: 10
-  parallelism: 5
-  completionMode: Indexed
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-        - name: worker
-          image: processor:1.0
-          env:
-            - name: TOTAL_CHUNKS
-              value: "50"
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              INDEX=$JOB_COMPLETION_INDEX
-              CHUNKS_PER_WORKER=$((TOTAL_CHUNKS / 10))
-              START=$((INDEX * CHUNKS_PER_WORKER))
-              END=$(((INDEX + 1) * CHUNKS_PER_WORKER))
-              echo "Processing chunks $START to $END"
-              process-chunks.sh $START $END
+- `fixed-parallel-job.yaml`: fixed-completion parallel Job (4 completions, parallelism 2)
+- `indexed-chunk-processor-job.yaml`: indexed Job that splits 50 chunks across 10 workers
+
+## Full Example 1: Fixed Parallel Job
+
+Apply and watch progress:
+
+```bash
+kubectl apply -f fixed-parallel-job.yaml
+kubectl get job fixed-parallel-demo --watch
 ```
 
-- Pod 0: processes chunks 0–4
-- Pod 1: processes chunks 5–9
+Verify pods and logs:
+
+```bash
+kubectl get pods -l job-name=fixed-parallel-demo
+POD=$(kubectl get pods -l job-name=fixed-parallel-demo -o jsonpath='{.items[0].metadata.name}')
+kubectl logs "$POD"
+
+# Follow logs live from all pods in this Job
+kubectl logs -f -l job-name=fixed-parallel-demo --all-containers=true --max-log-requests=20
+```
+
+## Full Example 2: Indexed Chunk Processor
+
+Apply and watch indexed completions:
+
+```bash
+kubectl apply -f indexed-chunk-processor-job.yaml
+kubectl get job indexed-chunk-processor --watch
+```
+
+Verify index assignment:
+
+```bash
+kubectl get pods -l job-name=indexed-chunk-processor --show-labels
+```
+
+Look for label `batch.kubernetes.io/job-completion-index=<N>`.
+
+Inspect a worker log:
+
+```bash
+POD=$(kubectl get pods -l job-name=indexed-chunk-processor -o jsonpath='{.items[0].metadata.name}')
+kubectl logs "$POD"
+
+# Follow logs live from all indexed worker pods
+kubectl logs -f -l job-name=indexed-chunk-processor --all-containers=true --max-log-requests=20
+```
+
+Expected output pattern:
+
+- Worker 0 processes chunks 0-4
+- Worker 1 processes chunks 5-9
 - ...
-- Pod 9: processes chunks 45–49
+- Worker 9 processes chunks 45-49
+
+## Cleanup
+
+```bash
+kubectl delete -f fixed-parallel-job.yaml
+kubectl delete -f indexed-chunk-processor-job.yaml
+```
 
 ## Key Difference
 

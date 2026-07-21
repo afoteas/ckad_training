@@ -1,0 +1,9 @@
+{
+  "defaultAction": "LOG",
+  "syscalls": [
+    {
+      "names": ["read", "write", "open", "close", "exit", "exit_group"],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}

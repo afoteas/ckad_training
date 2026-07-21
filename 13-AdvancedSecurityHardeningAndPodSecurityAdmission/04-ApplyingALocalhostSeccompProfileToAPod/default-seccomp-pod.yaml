@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: default-seccomp-pod
+spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: tester
+    image: busybox:1.36
+    command: ["sh", "-c", "echo 'Testing syscalls...' && ls -la / && date && sleep 3600"]

@@ -29,6 +29,26 @@ Every node has finite CPU and memory. Without constraints, one noisy workload ca
 
 This allows burst usage above request (when capacity exists) while still enforcing a maximum boundary.
 
+## Example Pod Spec
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-demo
+spec:
+  containers:
+    - name: app
+      image: nginx
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+```
+
 ## Operational Risks
 
 - No requests and limits: unstable noisy-neighbor behavior.

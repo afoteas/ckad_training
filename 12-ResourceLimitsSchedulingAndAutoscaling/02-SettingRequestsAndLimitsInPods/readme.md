@@ -23,7 +23,7 @@ In the container `resources` block:
 ## Example Commands
 
 ```bash
-kubectl apply -f ../03-ResourceQuotasAndLimitRanges/constrained-app.yaml
+kubectl apply -f constrained-app.yaml
 kubectl get deployment constrained-nginx-deployment
 kubectl get pods
 

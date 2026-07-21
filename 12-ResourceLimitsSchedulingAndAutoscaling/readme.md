@@ -4,7 +4,7 @@ This module focuses on three core Kubernetes operations themes:
 
 - resource governance with requests, limits, quotas, and limit ranges
 - placement control with selectors, affinity, taints, and tolerations
-- dynamic scaling with Horizontal Pod Autoscaler (HPA)
+- dynamic scaling with Horizontal Pod Autoscaler (HPA) and Vertical Pod Autoscaler (VPA)
 
 ## Lessons
 
@@ -17,6 +17,7 @@ This module focuses on three core Kubernetes operations themes:
 7. `07-TaintingNodesAndApplyingTolerations`
 8. `08-HorizontalPodAutoscalingBasics`
 9. `09-ImplementingHPAInALiveApp`
+10. `10-VerticalPodAutoscalingBasics`
 
 ## Learning Objectives
 
@@ -26,3 +27,4 @@ This module focuses on three core Kubernetes operations themes:
 - Control scheduling with node labels, selectors, and affinity rules.
 - Isolate workloads with taints and tolerations.
 - Configure and validate HPA behavior using CPU utilization.
+- Explain how VPA differs from HPA and when to use vertical scaling.

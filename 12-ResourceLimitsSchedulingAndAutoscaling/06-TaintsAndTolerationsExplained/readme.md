@@ -113,7 +113,16 @@ To schedule on a tainted node, the toleration must match key/value/effect as req
 
 ### Toleration Matching
 
-With `operator: Equal`, the toleration must match the taint's **key**, **value**, and **effect**:
+The `operator` field in a toleration supports **only two values** — unlike node affinity, which has `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, and `Lt`.
+
+| Operator | Meaning |
+|----------|---------|
+| `Equal` | Toleration must match the taint's **key**, **value**, and **effect** (default if omitted) |
+| `Exists` | Toleration matches any taint with the same **key** and **effect**; **value** is ignored |
+
+#### `operator: Equal`
+
+Use when the toleration must match a specific key **and** value:
 
 ```yaml
 tolerations:
@@ -123,7 +132,11 @@ tolerations:
   effect: "NoSchedule"
 ```
 
-Another common form is `operator: Exists`, which matches any taint with the given key regardless of value:
+This matches the taint `dedicated=finance:NoSchedule` exactly.
+
+#### `operator: Exists`
+
+Use when only the key matters — the value can be anything. Do **not** set `value` when using `Exists`:
 
 ```yaml
 tolerations:
@@ -132,7 +145,24 @@ tolerations:
   effect: "NoSchedule"
 ```
 
+This matches any taint with key `dedicated`, regardless of value (for example `dedicated=finance:NoSchedule` or `dedicated=hr:NoSchedule`).
+
+`Exists` is also used when the taint has no value:
+
+```bash
+kubectl taint nodes node1 special:NoSchedule
+```
+
+```yaml
+tolerations:
+- key: "special"
+  operator: "Exists"
+  effect: "NoSchedule"
+```
+
 If the toleration does not match, the scheduler skips that node.
+
+**CKAD tip:** For tolerations, the answer is almost always `Equal` or `Exists`. Use `Equal` when key + value must match; use `Exists` when only the key matters.
 
 ## Taints vs Labels and Affinity
 

@@ -2,6 +2,25 @@
 
 This module covers Kubernetes workloads designed to run one or more tasks to completion, from simple batch jobs with retry logic to scheduled recurring tasks and event-driven autoscaling.
 
+## CKAD Exam Relevance
+
+**Priority: Medium–High.** **Jobs** and **CronJobs** are regular CKAD topics — know `completions`, `parallelism`, `backoffLimit`, cron schedule syntax, `concurrencyPolicy`, and `suspend`. Lessons 01–07 are the exam focus. **KEDA** (lessons 08–09) and **JobSet** (lesson 10) are advanced production patterns and are unlikely to appear on CKAD. If you already understand Deployments, this module fills an important gap because the exam often asks you to create a Job or CronJob manifest from scratch.
+
+## Lesson CKAD Relevance
+
+| # | Lesson | Priority | Why it matters for CKAD |
+|---|--------|----------|-------------------------|
+| 01 | Job Basics and Retry Strategy | **High** | Job fundamentals, `backoffLimit`, and completion behavior are core topics |
+| 02 | Creating a Single-Run Job with Retries | **High** | Writing a Job manifest with retry logic is a common exam task |
+| 03 | Parallel and Indexed Jobs | **High** | `parallelism`, `completions`, and parallel execution patterns are tested |
+| 04 | Implementing an Indexed Parallel Job | Medium | IndexedJob is useful; appears less often than basic Jobs |
+| 05 | CronJob Features and Concurrency Policy | **High** | Cron schedule syntax and `concurrencyPolicy` are regularly tested |
+| 06 | Managing CronJob Suspension and History Limits | Medium | `suspend` and `successfulJobsHistoryLimit` are good to know |
+| 07 | Cleaning Up with TTLSecondsAfterFinished | Medium | `ttlSecondsAfterFinished` is useful; occasionally tested |
+| 08 | Event-Driven Autoscaling with KEDA | Low | KEDA is not a CKAD topic |
+| 09 | Triggering Jobs from Queue Depth via KEDA | Low | KEDA ScaledJob is production-focused, not exam-focused |
+| 10 | JobSet for Coordinated Multi-Job Workloads | Low | JobSet is too new/advanced for CKAD |
+
 ## Lesson Order
 
 1. `01-JobBasicsAndRetryStrategy`

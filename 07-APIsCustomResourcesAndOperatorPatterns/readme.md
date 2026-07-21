@@ -2,6 +2,24 @@
 
 This module covers advanced kubectl usage, direct Kubernetes API access, Custom Resource Definitions (CRDs), operator patterns, and API version lifecycle management.
 
+## CKAD Exam Relevance
+
+**Priority: Medium.** Lessons 01–02 are **high value** for CKAD: `kubectl` JSONPath output, `kubectl patch`, `kubectl scale`, and piping JSON to `jq` save time during the exam. CRDs (lessons 05–06) may appear as a "create a custom resource" task — know the basic CRD structure. Client-go, Kubebuilder, and operator scaffolding (lessons 03–04, 07–08) are **not** CKAD topics. API deprecation awareness (lesson 09) is useful background but rarely tested hands-on. Focus on kubectl power-user skills first.
+
+## Lesson CKAD Relevance
+
+| # | Lesson | Priority | Why it matters for CKAD |
+|---|--------|----------|-------------------------|
+| 01 | Power User Kubectl JSONPath and Patching | **High** | JSONPath, `kubectl patch`, and `kubectl scale` save critical exam time |
+| 02 | Efficient Debugging with Kubectl and Jq | **High** | `kubectl -o json` + `jq` for fast troubleshooting during the exam |
+| 03 | Accessing the Kubernetes API with Client-Go | Low | Go client programming is not CKAD scope |
+| 04 | Creating Pods Programmatically in Go | Low | Writing Go code to create Pods is not tested |
+| 05 | Custom Resource Definitions (CRDs) | Medium | Know CRD structure; may need to create or apply a basic CRD |
+| 06 | Defining and Applying a CRD | Medium | Hands-on CRD + custom resource creation is occasionally tested |
+| 07 | Operator Pattern Fundamentals | Low | Operator reconcile loop is conceptual, not hands-on CKAD |
+| 08 | Scaffolding an Operator with Kubebuilder | Low | Kubebuilder scaffolding is far beyond CKAD |
+| 09 | Managing API Versions and Deprecations | Low | Useful for cluster upgrades; rarely a CKAD task |
+
 ## Lesson Order
 
 1. `01-PowerUserKubectlJSONPathAndPatching`

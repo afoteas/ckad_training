@@ -2,6 +2,27 @@
 
 This chapter covers practical workflows for local Kubernetes development, integration testing, and CI pipeline validation.
 
+## CKAD Exam Relevance
+
+**Priority: Low — useful for practice, not for the exam itself.** Skaffold, Tilt, GitHub Actions, and integration test harnesses are not tested on CKAD. However, knowing how to spin up a **kind** or **minikube** cluster and enable addons like **metrics-server** is practically useful for rehearsing HPA and probe scenarios. Treat this module as your local lab setup guide rather than exam curriculum. Read lessons 01–03 if you need a cluster; skip the CI/Skaffold/Tilt lessons unless you want them for day-to-day development.
+
+## Lesson CKAD Relevance
+
+| # | Lesson | Priority | Why it matters for CKAD |
+|---|--------|----------|-------------------------|
+| 01 | Creating a Disposable Cluster with kind | Medium | Useful for local CKAD practice; cluster creation itself is not tested |
+| 02 | Choose the Right Local Cluster in Minikube and Kind | Medium | Helps you pick a practice environment; `kubectl config` context switching is useful |
+| 03 | Enabling Add-Ons in Minikube | Medium | metrics-server addon supports HPA practice from module 12 |
+| 04 | Live Coding with Skaffold Dev Loop | Low | Skaffold is not on CKAD |
+| 05 | Configuring Skaffold Hot-Reload with Kaniko Build | Low | Kaniko/in-cluster builds are not CKAD topics |
+| 06 | Tilt for Local Microservice Stacks | Low | Tilt is a dev tool, not exam material |
+| 07 | Performing Multi-Service Dev with Tilt and Live Updates | Low | Multi-service dev workflows are beyond CKAD |
+| 08 | Integration Test Writing with kube-test-harness | Low | Test harnesses are not tested |
+| 09 | Running Go Integration Tests Against kind in CI | Low | CI pipelines are not CKAD scope |
+| 10 | Helm Chart Testing and Linting | Low | `helm lint` is useful background; full CI chart testing is not tested |
+| 11 | Building Images, Linting Helm, and Deploying to kind in CI | Low | CI pipeline patterns are not on CKAD |
+| 12 | Cleanup and Resource Optimization in CI Clusters | Low | CI hygiene is not exam material |
+
 ## 1. Creating a Disposable Cluster with kind
 
 Small guide:

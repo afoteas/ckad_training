@@ -2,7 +2,24 @@
 
 This module focuses on practical Kubernetes and container fundamentals used in real delivery workflows and CKAD-style practice.
 
-## What You Learn
+## CKAD Exam Relevance
+
+**Priority: High — start here.** This module covers core CKAD skills: choosing the right workload type (Pod, Deployment, Job, CronJob, DaemonSet), rolling updates and rollout status, multicontainer patterns (init, sidecar, adapter), volumes, and PVC mounts. The exam frequently asks you to create or fix Deployments, mount storage, and design multi-container Pods under time pressure. Image building lessons are lighter on the exam but help you understand `image`, `imagePullPolicy`, and registry workflows. Master lessons 04–09 before moving on.
+
+## Lesson CKAD Relevance
+
+| # | Lesson | Priority | Why it matters for CKAD |
+|---|--------|----------|-------------------------|
+| 01 | OCI-Compliant Images Using Dockerfile Best Practices | Low | Image building is rarely hands-on; understand `FROM`, layers, and small images conceptually |
+| 02 | Creating Multistage Builds and Slimming Images | Low | Good practice; exam may reference image size or security but won't ask you to write a Dockerfile |
+| 03 | Pushing and Scanning Images in a Registry | Low | Registry workflows are background knowledge; `imagePullPolicy` is more exam-relevant |
+| 04 | Choose the Right Workload Resources | **High** | Must know when to use Pod, Deployment, Job, CronJob, DaemonSet, StatefulSet |
+| 05 | Implementing Rolling Updates with Deployments | **High** | Rolling updates, `kubectl rollout status`, and Deployment strategy fields are common tasks |
+| 06 | Multicontainer Pod Patterns | **High** | Init, sidecar, and adapter patterns appear frequently in exam scenarios |
+| 07 | Deploying a Sidecar Logging Pattern | **High** | Hands-on sidecar Pod design is a classic CKAD exercise |
+| 08 | Volumes in Pods | **High** | emptyDir, ConfigMap, Secret, and volume mount syntax are core skills |
+| 09 | Creating a PVC and Mounting It in a Deployment | **High** | Creating PVCs and mounting persistent storage in Deployments is regularly tested |
+
 
 - build OCI-compliant images with Dockerfile best practices
 - optimize image size and build speed with multistage builds

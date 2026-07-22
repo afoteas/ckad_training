@@ -140,6 +140,21 @@ Rough math for this demo:
 
 The scheduler evicts the minimum number of lower-priority Pods needed, respecting PDBs when present.
 
+## Why Standalone Pods Instead of a ReplicaSet?
+
+This demo uses 9 separate Pods rather than a Deployment/ReplicaSet with `replicas: 9`. Initial scheduling and preemption behave the same either way — all replicas inherit `priorityClassName` from the pod template and compete for CPU.
+
+The difference is what happens **after** a low-priority Pod is evicted:
+
+| Setup | After preemption |
+|-------|------------------|
+| 9 standalone Pods | Evicted Pod is gone — high-priority Pod keeps running |
+| Deployment `replicas: 9` | Controller sees `8/9` replicas and **creates a replacement** |
+
+With a ReplicaSet or Deployment, the controller fights preemption by immediately recreating evicted Pods. That can cause churn: evict → recreate → compete for CPU again → possibly evict again.
+
+This demo uses standalone Pods so the eviction is clean and easy to observe. In production, low-priority workloads are often Jobs, scaled-down Deployments, or classes with `preemptionPolicy: Never` — so preempted work does not instantly respawn and compete for resources.
+
 ## Cleanup
 
 ```bash

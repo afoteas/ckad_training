@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-only
+spec:
+  # Select the target Pods (the Backend)
+  podSelector:
+    matchLabels:
+      app: backend
+  # Define the traffic direction to control (Ingress/Inbound)
+  policyTypes:
+  - Ingress
+  # Define the allowed incoming traffic rules
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          # Only Pods with the label 'role: web-server' are allowed
+          role: web-server
+    # Allow traffic on TCP port 80 (the backend's exposed port)
+    ports:
+    - protocol: TCP
+      port: 80

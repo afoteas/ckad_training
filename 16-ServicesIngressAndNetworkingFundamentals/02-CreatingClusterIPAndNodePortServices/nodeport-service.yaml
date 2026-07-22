@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-web
+spec:
+  type: NodePort         # Exposes the Service on a port on each Node
+  selector:
+    app: web-app
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080      # Optional: specify a port in the range 30000-32767

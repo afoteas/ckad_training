@@ -1,0 +1,19 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: inject-standard-labels
+spec:
+  rules:
+  - name: add-standard-labels
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          labels:
+            +(app.kubernetes.io/managed-by): kyverno
+            +(environment): demo
+            +(team): platform

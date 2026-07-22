@@ -54,15 +54,102 @@ kubectl get pods -l app=web -o wide
 
 See `deployment-with-spread.yaml` for the full manifest. This ensures replicas are evenly distributed across availability zones. If spread cannot be met, Pods remain `Pending` rather than stacking on one zone.
 
-## Common Topology Keys
+## What `topologyKey` Is
 
-| `topologyKey` | Domain |
-|---------------|--------|
-| `topology.kubernetes.io/zone` | Availability zone |
-| `topology.kubernetes.io/region` | Cloud region |
-| `kubernetes.io/hostname` | Individual node |
+`topologyKey` is **the name of a label that exists on your Nodes**. The scheduler groups nodes by the *value* of that label and treats each distinct value as one "domain" to balance Pods across.
 
-Cloud providers typically label nodes automatically. In local clusters, you label nodes manually.
+So `topologyKey` does not take a fixed enum — it accepts **any node label key**. The value of that label on each node is what defines the domain boundaries.
+
+```text
+topologyKey: topology.kubernetes.io/zone   # label KEY on the node
+              │
+              └─ each distinct label VALUE (us-east-1a, us-east-1b, ...) is one domain
+```
+
+### Well-Known Topology Labels
+
+Kubernetes reserves a `topology.kubernetes.io/` label family for location. These are the values you will normally use as a `topologyKey`:
+
+| Label key | Domain granularity | Example value |
+|-----------|-------------------|---------------|
+| `topology.kubernetes.io/region` | Cloud region (coarsest) | `us-east-1` |
+| `topology.kubernetes.io/zone` | Availability zone within a region | `us-east-1a` |
+| `kubernetes.io/hostname` | A single node (finest) | `minikube-m02` |
+
+A region contains multiple zones; each zone is an isolated data center. Spreading across `zone` protects against a data-center outage; spreading across `hostname` protects against a single node failure.
+
+### Custom Topology Keys
+
+You are not limited to the well-known labels. Any label you put on nodes can be a `topologyKey` — useful for physical layout the cloud doesn't model:
+
+```yaml
+topologyKey: rack          # e.g. rack=r1, rack=r2
+topologyKey: failure-domain # any custom scheme you define
+```
+
+The only requirement: the nodes you want to spread across must **carry that label**. Nodes missing the `topologyKey` label are excluded from spreading for that constraint.
+
+## Assigning Topology Labels to Nodes
+
+### On Cloud Providers (automatic)
+
+Managed clusters (EKS, GKE, AKS) run a **cloud controller manager** that reads instance metadata and applies `topology.kubernetes.io/region` and `topology.kubernetes.io/zone` to every node automatically. `kubernetes.io/hostname` is set by the kubelet on every node, everywhere. You usually don't label anything yourself.
+
+### On Bare Metal / Minikube (manual)
+
+There is no cloud metadata, so you assign the labels with `kubectl label`:
+
+```bash
+# Syntax: kubectl label node <node-name> <key>=<value>
+kubectl label node minikube      topology.kubernetes.io/zone=us-east-1a
+kubectl label node minikube-m02  topology.kubernetes.io/zone=us-east-1b
+kubectl label node minikube-m03  topology.kubernetes.io/zone=us-east-1c
+```
+
+Custom keys work the same way:
+
+```bash
+kubectl label node minikube-m02 rack=r1
+```
+
+### Verifying and Managing Labels
+
+```bash
+# Show a specific label as a column for all nodes
+kubectl get nodes -L topology.kubernetes.io/zone
+
+# Show every label on one node
+kubectl get node minikube --show-labels
+
+# Overwrite an existing label (must add --overwrite)
+kubectl label node minikube-m02 topology.kubernetes.io/zone=us-east-1c --overwrite
+
+# Remove a label (trailing minus)
+kubectl label node minikube-m02 topology.kubernetes.io/zone-
+```
+
+If a node lacks the `topologyKey` label, it won't participate in that spread constraint — a common reason Pods bunch up or stay `Pending` unexpectedly.
+
+## Advantages Over `nodeSelector` and Affinity
+
+`nodeSelector`, node affinity, and pod anti-affinity can influence placement too — but none of them express **"spread evenly"** as cleanly as topology spread constraints.
+
+| Approach | What it does | Limitation for even distribution |
+|----------|--------------|----------------------------------|
+| `nodeSelector` | Pins Pods to nodes with a matching label | Binary match only — cannot balance counts across domains; all Pods can still land on one matching node |
+| Node affinity | Attracts/repels Pods to/from nodes by label rules | Controls *which* nodes are eligible, not *how evenly* Pods are spread among them |
+| Pod anti-affinity | Keeps Pods of a label apart | Effectively "at most one per domain" — coarse, and gets expensive at scale (evaluated pairwise across all Pods) |
+| Topology spread | Balances Pod counts across domains within `maxSkew` | Purpose-built for even distribution |
+
+Key advantages of topology spread constraints:
+
+- **Quantitative balance.** `maxSkew` lets you say "domains may differ by at most N Pods" — anti-affinity can only say "keep them apart," which usually means one-per-domain and no finer control.
+- **Scales past the number of domains.** With anti-affinity (one Pod per zone), a 4th replica across 3 zones has nowhere to go. Spread constraints happily place `2-1-1`, then `2-2-1`, and so on.
+- **Tunable strictness.** `whenUnsatisfiable: ScheduleAnyway` degrades gracefully under pressure; `DoNotSchedule` enforces hard balance. Anti-affinity `required` rules are all-or-nothing.
+- **Cheaper at scale.** Spread is evaluated per topology domain, while pod anti-affinity is evaluated pairwise across matching Pods and becomes costly in large clusters.
+- **Composable.** You can still combine spread with `nodeSelector`/affinity — use affinity to pick *eligible* nodes, and spread to *balance* across them.
+
+Rule of thumb: use `nodeSelector`/affinity to decide **where Pods may go**, and topology spread constraints to decide **how evenly they land there**.
 
 ## When to Use Spread Constraints
 

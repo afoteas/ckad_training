@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure-ingress
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - myapp.example.com
+    secretName: tls-secret        # kubernetes.io/tls Secret with cert + key
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web
+            port:
+              number: 80

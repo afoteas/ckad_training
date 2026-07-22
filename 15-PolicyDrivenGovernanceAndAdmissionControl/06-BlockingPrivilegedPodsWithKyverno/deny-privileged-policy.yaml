@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-privileged-containers
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: privileged-not-allowed
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Privileged containers are not allowed. Set securityContext.privileged to false."
+      pattern:
+        spec:
+          containers:
+          - =(securityContext):
+              =(privileged): false

@@ -4,6 +4,10 @@ The Kubernetes scheduler places Pods once at creation time and rarely revisits t
 
 For a hands-on Helm deployment, see [09-RunningDeschedulerAsACronJob](../09-RunningDeschedulerAsACronJob/readme.md).
 
+## Example Files
+
+- `descheduler-policy.yaml` — reference `LowNodeUtilization` policy structure
+
 ## Why Descheduler Exists
 
 After initial scheduling, cluster conditions change:
@@ -38,26 +42,10 @@ You can mix and match strategies in a single policy.
 
 ## LowNodeUtilization Example
 
-```yaml
-apiVersion: descheduler/v1alpha2
-kind: DeschedulerPolicy
-profiles:
-- name: default
-  pluginConfig:
-  - name: LowNodeUtilization
-    args:
-      thresholds:
-        cpu: 20
-        memory: 20
-        pods: 20
-      targetThresholds:
-        cpu: 50
-        memory: 50
-        pods: 50
-  plugins:
-    balance:
-      enabled:
-      - LowNodeUtilization
+See `descheduler-policy.yaml` for the full policy. In production this policy is typically embedded in a Helm values file (see lesson 09).
+
+```bash
+cat descheduler-policy.yaml
 ```
 
 ### How Thresholds Work

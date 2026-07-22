@@ -4,6 +4,12 @@ This lesson walks through defining high- and low-priority classes, deploying Pod
 
 For the theory behind PriorityClasses, see [01-PriorityClassesAndPreemptionExplained](../01-PriorityClassesAndPreemptionExplained/readme.md).
 
+## Demo Files
+
+- `priority-classes.yaml` — high- and low-priority PriorityClasses
+- `low-priority-pods.yaml` — 9 CPU-hungry low-priority Pods
+- `high-priority-pod.yaml` — single high-priority Pod that triggers preemption
+
 ## Demo Overview
 
 The demonstration uses a resource-constrained Minikube cluster to show preemption in action:
@@ -30,26 +36,6 @@ A small cluster (2 CPUs, 1800 MiB memory) makes resource contention easy to obse
 
 ## Step 2: Create PriorityClasses
 
-```yaml
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: high-priority
-value: 1000
-globalDefault: false
-description: "High-priority workloads"
----
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: low-priority
-value: 100
-globalDefault: false
-description: "Low-priority workloads"
-```
-
-Apply and verify:
-
 ```bash
 kubectl apply -f priority-classes.yaml
 kubectl get priorityclasses
@@ -59,25 +45,14 @@ You will also see built-in system classes like `system-node-critical` and `syste
 
 ## Step 3: Deploy Low-Priority Pods
 
-Deploy multiple low-priority Pods, each requesting significant CPU (for example `1100m`):
+Deploy 9 low-priority Pods, each requesting `1100m` CPU:
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: low-priority-pod-1
-spec:
-  priorityClassName: low-priority
-  containers:
-  - name: nginx
-    image: nginx
-    resources:
-      requests:
-        cpu: "1100m"
-        memory: "128Mi"
+```bash
+kubectl apply -f low-priority-pods.yaml
+kubectl get pods -w
 ```
 
-Repeat for 9 Pods. With 2 CPUs available, most start running but one remains `Pending` because total requests exceed capacity.
+With 2 CPUs available, most start running but one remains `Pending` because total requests exceed capacity.
 
 Check node allocation:
 
@@ -86,22 +61,6 @@ kubectl describe node minikube | grep -A 10 "Allocated resources"
 ```
 
 ## Step 4: Deploy a High-Priority Pod
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: high-priority-pod
-spec:
-  priorityClassName: high-priority
-  containers:
-  - name: nginx
-    image: nginx
-    resources:
-      requests:
-        cpu: "1000m"
-        memory: "128Mi"
-```
 
 ```bash
 kubectl apply -f high-priority-pod.yaml

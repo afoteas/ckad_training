@@ -4,6 +4,11 @@ This lesson demonstrates distributing replicas evenly across simulated availabil
 
 For the theory, see [03-TopologySpreadConstraints](../03-TopologySpreadConstraints/readme.md).
 
+## Demo Files
+
+- `deployment-without-spread.yaml` — baseline Deployment with no spread constraints
+- `deployment-with-spread.yaml` — Deployment with zone-based spread constraints
+
 ## Demo Overview
 
 1. Start a 3-node Minikube cluster.
@@ -42,26 +47,6 @@ In production, cloud providers apply these labels automatically.
 
 ## Step 3: Deploy Without Spread Constraints
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-no-spread
-spec:
-  replicas: 6
-  selector:
-    matchLabels:
-      app: nginx-no-spread
-  template:
-    metadata:
-      labels:
-        app: nginx-no-spread
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-```
-
 ```bash
 kubectl apply -f deployment-without-spread.yaml
 kubectl get pods -l app=nginx-no-spread -o wide
@@ -83,33 +68,6 @@ kubectl delete -f deployment-without-spread.yaml
 ```
 
 ## Step 4: Deploy With Spread Constraints
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-with-spread
-spec:
-  replicas: 6
-  selector:
-    matchLabels:
-      app: nginx-with-spread
-  template:
-    metadata:
-      labels:
-        app: nginx-with-spread
-    spec:
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: nginx-with-spread
-      containers:
-      - name: nginx
-        image: nginx
-```
 
 ```bash
 kubectl apply -f deployment-with-spread.yaml

@@ -4,6 +4,10 @@ Topology spread constraints control **where** Pods are placed across failure dom
 
 For a hands-on zone distribution demo, see [04-ZoneAwareDistributionWithSpreadConstraints](../04-ZoneAwareDistributionWithSpreadConstraints/readme.md).
 
+## Example Files
+
+- `deployment-with-spread.yaml` — Deployment with zone-based topology spread constraints
+
 ## Why Pod Distribution Matters
 
 By default, the Kubernetes scheduler finds any node with enough resources. It does not care whether all replicas of a service land on the same node, zone, or rack.
@@ -36,36 +40,19 @@ With 3 zones and 6 replicas, valid distributions include `2-2-2` or `3-2-2` (ske
 | `DoNotSchedule` | Hard constraint — Pod stays `Pending` if spread cannot be satisfied |
 | `ScheduleAnyway` | Soft constraint — schedule anyway with best-effort spread |
 
-## Example YAML
+## Example Deployment
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web-app
-spec:
-  replicas: 6
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: web
-    spec:
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: web
-      containers:
-      - name: nginx
-        image: nginx
+Label nodes with zone labels first (required for spread across zones):
+
+```bash
+kubectl label node <node-1> topology.kubernetes.io/zone=us-east-1a
+kubectl label node <node-2> topology.kubernetes.io/zone=us-east-1b
+kubectl label node <node-3> topology.kubernetes.io/zone=us-east-1c
+kubectl apply -f deployment-with-spread.yaml
+kubectl get pods -l app=web -o wide
 ```
 
-This ensures replicas are evenly distributed across availability zones. If spread cannot be met, Pods remain `Pending` rather than stacking on one zone.
+See `deployment-with-spread.yaml` for the full manifest. This ensures replicas are evenly distributed across availability zones. If spread cannot be met, Pods remain `Pending` rather than stacking on one zone.
 
 ## Common Topology Keys
 

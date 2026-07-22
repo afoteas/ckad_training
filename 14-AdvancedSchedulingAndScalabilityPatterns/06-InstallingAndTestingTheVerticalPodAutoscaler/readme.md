@@ -4,6 +4,10 @@ This lesson walks through installing VPA on a local cluster, deploying a workloa
 
 For VPA theory and update modes, see module 12 [10-VerticalPodAutoscalingBasics](../../12-ResourceLimitsSchedulingAndAutoscaling/10-VerticalPodAutoscalingBasics/readme.md).
 
+## Demo Files
+
+- `vpa-demo-app.yaml` — Deployment with undersized requests and a VPA in `Auto` mode
+
 ## Why VPA Matters
 
 Developers often guess resource requests when deploying. This leads to:
@@ -68,43 +72,6 @@ kubectl get pods -n kube-system | grep vpa
 You should see the admission controller, recommender, and updater running.
 
 ## Step 3: Deploy Application with VPA
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hamster
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: hamster
-  template:
-    metadata:
-      labels:
-        app: hamster
-    spec:
-      containers:
-      - name: hamster
-        image: registry.k8s.io/ubuntu-slim:0.14
-        command: ["/bin/sh", "-c", "while true; do timeout 0.5 yes >/dev/null; sleep 0.5; done"]
-        resources:
-          requests:
-            cpu: 100m
-            memory: 50Mi
----
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  name: hamster-vpa
-spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: hamster
-  updatePolicy:
-    updateMode: "Auto"
-```
 
 ```bash
 kubectl apply -f vpa-demo-app.yaml

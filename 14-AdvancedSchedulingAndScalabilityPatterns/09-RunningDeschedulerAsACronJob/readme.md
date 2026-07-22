@@ -4,6 +4,11 @@ This lesson installs the descheduler via Helm, configures a `LowNodeUtilization`
 
 For descheduler theory and strategies, see [08-DeschedulerForPostDeploymentRebalancing](../08-DeschedulerForPostDeploymentRebalancing/readme.md).
 
+## Demo Files
+
+- `descheduler-values.yaml` — Helm values with nightly CronJob schedule and `LowNodeUtilization` policy
+- `test-workload.yaml` — imbalanced Deployment pinned to the control-plane node
+
 ## Demo Overview
 
 1. Create a 3-node Minikube cluster.
@@ -34,30 +39,10 @@ helm repo update
 
 ## Step 3: Configure Descheduler Values
 
-```yaml
-# descheduler-values.yaml
-kind: CronJob
-schedule: "0 2 * * *"    # Run at 2:00 AM every night
+See `descheduler-values.yaml` for the full Helm values file. Key settings:
 
-deschedulerPolicy:
-  profiles:
-  - name: default
-    pluginConfig:
-    - name: LowNodeUtilization
-      args:
-        thresholds:
-          cpu: 20
-          memory: 20
-          pods: 20
-        targetThresholds:
-          cpu: 50
-          memory: 50
-          pods: 50
-    plugins:
-      balance:
-        enabled:
-        - LowNodeUtilization
-```
+- `schedule: "0 2 * * *"` — run at 2:00 AM every night
+- `LowNodeUtilization` with 20% underutilized and 50% target thresholds
 
 ### Threshold Explanation
 
@@ -83,7 +68,7 @@ kubectl get configmap -n kube-system -l app.kubernetes.io/name=descheduler -o ya
 
 ## Step 5: Create an Imbalanced Workload
 
-Deploy multiple Pods that all land on one node:
+Deploy Pods pinned to the control-plane node to simulate imbalance:
 
 ```bash
 kubectl apply -f test-workload.yaml

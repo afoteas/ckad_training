@@ -4,6 +4,11 @@ PriorityClasses let you assign numeric scheduling priorities to workloads so Kub
 
 For a hands-on walkthrough, see [02-CreatingPriorityClassesAndObservingPreemption](../02-CreatingPriorityClassesAndObservingPreemption/readme.md).
 
+## Example Files
+
+- `high-priority-class.yaml` — PriorityClass with preemption enabled
+- `critical-pod.yaml` — Pod referencing the high-priority class
+
 ## Why PriorityClasses Exist
 
 By default, Kubernetes treats every Pod equally. All Pods compete for CPU, memory, and storage with no built-in sense of importance.
@@ -38,43 +43,69 @@ When the scheduler cannot place a high-priority Pod due to insufficient resource
 2. It evicts enough of them to free capacity.
 3. It schedules the high-priority Pod.
 
-Preemption is automatic and happens only when necessary. Think of it like an airline bumping standby passengers so the flight crew can board — disruptive, but essential for system stability.
+Preemption is automatic and happens only when necessary — and only if the PriorityClass allows it (see `preemptionPolicy` below).
 
-## PriorityClass YAML Example
+## `value` vs `preemptionPolicy`
 
-```yaml
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: high-priority
-value: 100000
-globalDefault: false
-description: "High-priority workloads"
-preemptionPolicy: PreemptLowerPriority
+These are separate knobs:
+
+| Field | Controls |
+|-------|----------|
+| `value` | Scheduling **priority** — higher numbers are scheduled first |
+| `preemptionPolicy` | Whether the Pod can **evict** lower-priority Pods to get a node |
+
+A high `value` does not automatically mean preemption. You choose that explicitly.
+
+## `preemptionPolicy` Values
+
+Only two values are valid:
+
+| Value | Default? | Behavior |
+|-------|----------|----------|
+| `PreemptLowerPriority` | Yes (if omitted) | Can evict lower-priority Pods to free resources |
+| `Never` | No | Higher scheduling priority, but **cannot** preempt running Pods — waits until resources free up naturally |
+
+Use `Never` when you want a Pod scheduled ahead of lower-priority queued work without disrupting Pods already running (for example, batch or data-science jobs).
+
+## `globalDefault`
+
+Set `globalDefault: true` on exactly one PriorityClass to assign a default priority to Pods that omit `priorityClassName`.
+
+| Scenario | Result for Pods without `priorityClassName` |
+|----------|---------------------------------------------|
+| One PriorityClass with `globalDefault: true` | That class's `value` is used |
+| No `globalDefault` PriorityClass | Priority `0` |
+| Multiple PriorityClasses with `globalDefault: true` | The class with the **lowest `value`** wins |
+
+Kubernetes does not reject multiple global defaults at the API level — the priority admission controller picks the lowest `value` as a tie-break. Treat that as a safety net, not something to rely on in production.
+
+**Example:** if `default-low` (`value: 100`, `globalDefault: true`) and `default-high` (`value: 500`, `globalDefault: true`) both exist, Pods without a class get priority **100**.
+
+## PriorityClass Example
+
+Apply the PriorityClass, then deploy a Pod that references it:
+
+```bash
+kubectl apply -f high-priority-class.yaml
+kubectl apply -f critical-pod.yaml
+kubectl get priorityclasses
+kubectl describe pod critical-app | grep -i priority
 ```
+
+See `high-priority-class.yaml` for the full manifest.
 
 ### Key Fields
 
 | Field | Purpose |
 |-------|---------|
 | `value` | Numeric priority — higher means more important |
-| `globalDefault` | If `true`, becomes the default for Pods without an explicit class |
-| `preemptionPolicy` | `PreemptLowerPriority` (default) allows eviction; `Never` disables preemption |
+| `globalDefault` | Default priority for Pods without `priorityClassName` — see section above |
+| `preemptionPolicy` | `PreemptLowerPriority` or `Never` — see table above |
 | `description` | Human-readable explanation of the class |
 
 ### Referencing a PriorityClass on a Pod
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: critical-app
-spec:
-  priorityClassName: high-priority
-  containers:
-  - name: app
-    image: nginx
-```
+Pods set `spec.priorityClassName` to inherit the class priority. See `critical-pod.yaml`.
 
 ## Risks and Trade-offs
 
@@ -90,13 +121,15 @@ spec:
 - Document priority values across teams so everyone understands the hierarchy.
 - Combine with resource requests and limits for predictable scheduling.
 - Reserve top priorities for control plane components, DNS, and other essential cluster services.
+- Mark at most one PriorityClass as `globalDefault: true`.
 
 ## CKAD Tips
 
 - Know the `scheduling.k8s.io/v1` `PriorityClass` kind and the `value` field.
 - Pods reference priorities via `priorityClassName`.
-- `preemptionPolicy: PreemptLowerPriority` enables eviction of lower-priority Pods.
-- Default priority for Pods without a class is `0`.
+- `preemptionPolicy` has only two values: `PreemptLowerPriority` (default) and `Never`.
+- Only one PriorityClass should have `globalDefault: true`; if multiple do, the lowest `value` wins.
+- Default priority for Pods without a class is `0` (unless a `globalDefault` class exists).
 
 ## Key Takeaway
 

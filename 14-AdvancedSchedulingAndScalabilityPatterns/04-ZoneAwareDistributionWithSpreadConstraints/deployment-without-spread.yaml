@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-no-spread
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: nginx-no-spread
+  template:
+    metadata:
+      labels:
+        app: nginx-no-spread
+    spec:
+      containers:
+      - name: nginx
+        image: nginx

@@ -55,8 +55,7 @@ helm repo update
 
 kubectl create namespace cosign-system
 
-helm install policy-controller sigstore/policy-controller \
-  --namespace cosign-system --devel
+helm install policy-controller sigstore/policy-controller -n cosign-system --devel
 ```
 
 Wait for the webhook to be ready:

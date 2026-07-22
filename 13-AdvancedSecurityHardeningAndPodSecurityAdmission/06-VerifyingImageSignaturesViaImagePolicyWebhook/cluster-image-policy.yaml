@@ -4,7 +4,7 @@ metadata:
   name: chainguard-policy
 spec:
   images:
-  - glob: "cgr.dev/**"
+  - glob: "ghcr.io/afoteas/**"
   authorities:
   - keyless:
       identities:

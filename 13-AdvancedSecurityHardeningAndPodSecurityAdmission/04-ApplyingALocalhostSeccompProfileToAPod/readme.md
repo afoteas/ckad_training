@@ -30,6 +30,20 @@ Benefits:
 | `RuntimeDefault` | Container runtime's default profile |
 | `Localhost` | Custom profile loaded from the node's filesystem |
 
+### Preferred config: `securityContext` vs annotations
+
+Always reference seccomp profiles via `securityContext.seccompProfile` — not annotations:
+
+```yaml
+# Preferred
+securityContext:
+  seccompProfile:
+    type: Localhost
+    localhostProfile: custom-profile.json
+```
+
+Legacy annotation form (`seccomp.security.alpha.kubernetes.io/...`) is deprecated and does not satisfy PSA `restricted`. See [03-SeccompAndAppArmorProfiles](../03-SeccompAndAppArmorProfiles/readme.md) for the full comparison.
+
 ## Profile JSON Structure
 
 Custom profiles are JSON files with a syscall allow list and a default action for anything not listed:
@@ -54,15 +68,57 @@ Custom profiles are JSON files with a syscall allow list and a default action fo
 
 ## Step 1: Inspect the Node seccomp Directory
 
-On minikube, SSH into the node and list the seccomp directory:
+Custom profiles must exist on **every node** that can run the Pod, at `/var/lib/kubelet/seccomp/`.
+
+### kind
+
+List kind node containers (replace `ckad` with your cluster name):
+
+```bash
+kind get nodes --name ckad
+```
+
+Inspect the seccomp directory on a node:
+
+```bash
+docker exec ckad-control-plane ls -la /var/lib/kubelet/seccomp
+```
+
+Initially this directory may be empty or missing. Create it before copying profiles.
+
+### minikube
+
+SSH into the node and list the seccomp directory:
 
 ```bash
 minikube ssh -- sudo ls -la /var/lib/kubelet/seccomp
 ```
 
-Initially this directory is empty. Custom profiles must be placed here before Pods can reference them.
-
 ## Step 2: Copy Profiles to the Node
+
+### kind
+
+Copy each profile to **every** kind node (control-plane and workers). Pods can land on any worker:
+
+```bash
+CLUSTER=ckad   # change to your cluster name
+
+for node in $(kind get nodes --name "$CLUSTER"); do
+  docker exec "$node" mkdir -p /var/lib/kubelet/seccomp
+  docker cp custom-profile.json "${node}:/var/lib/kubelet/seccomp/custom-profile.json"
+  docker cp restrictive-profile.json "${node}:/var/lib/kubelet/seccomp/restrictive-profile.json"
+  docker cp audit-profile.json "${node}:/var/lib/kubelet/seccomp/audit-profile.json"
+done
+```
+
+Verify on one node:
+
+```bash
+docker exec ckad-control-plane ls -la /var/lib/kubelet/seccomp
+docker exec ckad-control-plane cat /var/lib/kubelet/seccomp/custom-profile.json
+```
+
+### minikube
 
 Copy each profile from your local machine to the minikube node:
 
@@ -161,4 +217,4 @@ kubectl delete -f custom-seccomp-pod.yaml
 
 ## Key Takeaway
 
-`Localhost` seccomp profiles let you define fine-grained syscall restrictions beyond the runtime default. Copy the JSON to every node, reference it in `securityContext.seccompProfile`, and test thoroughly before enforcing in production.
+`Localhost` seccomp profiles let you define fine-grained syscall restrictions beyond the runtime default. Copy the JSON to every node (all kind workers or the minikube node), reference it in `securityContext.seccompProfile`, and test thoroughly before enforcing in production.

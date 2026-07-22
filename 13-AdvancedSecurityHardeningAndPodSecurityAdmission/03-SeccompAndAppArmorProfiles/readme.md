@@ -40,6 +40,36 @@ securityContext:
     type: RuntimeDefault
 ```
 
+### Preferred config: `securityContext` vs annotations
+
+| | `securityContext.seccompProfile` | Legacy annotations |
+|---|----------------------------------|--------------------|
+| Status | GA since Kubernetes 1.19 | Deprecated |
+| API validation | Yes — schema-checked | No — free-form strings |
+| PSA `restricted` | **Required** here | Not sufficient on its own |
+| CKAD | **Know this format** | Legacy; unlikely on new exams |
+
+**Preferred (modern):**
+
+```yaml
+spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+```
+
+**Legacy (deprecated — do not use for new manifests):**
+
+```yaml
+metadata:
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    # per-container:
+    container.seccomp.security.alpha.kubernetes.io/nginx: runtime/default
+```
+
+Always use `securityContext.seccompProfile`. Pod Security Admission's `restricted` standard checks this field, not seccomp annotations.
+
 For a hands-on localhost profile walkthrough, see [04-ApplyingALocalhostSeccompProfileToAPod](../04-ApplyingALocalhostSeccompProfileToAPod/readme.md).
 
 ## AppArmor
@@ -52,13 +82,38 @@ For a hands-on localhost profile walkthrough, see [04-ApplyingALocalhostSeccompP
 
 AppArmor applies rules based on the **executable path**. For example, you can attach a profile to `nginx` that defines which files it can read, which ports it can bind to, and whether it can execute other processes.
 
-In Kubernetes, AppArmor is applied via **Pod annotations**:
+### Preferred config: `securityContext` vs annotations
+
+| | `securityContext.appArmorProfile` | Legacy annotations |
+|---|-----------------------------------|--------------------|
+| Status | GA since Kubernetes 1.30 | Beta, still common |
+| Scope | Per-container in `securityContext` | Per-container via annotation key |
+| API validation | Yes | String parsed by kubelet |
+| CKAD | Know for 1.30+ clusters | **Still the most common exam format** |
+
+**Preferred on Kubernetes 1.30+:**
+
+```yaml
+spec:
+  containers:
+  - name: nginx
+    securityContext:
+      appArmorProfile:
+        type: Localhost
+        localhostProfile: nginx-default
+```
+
+**Traditional (annotations — still widely used):**
 
 ```yaml
 metadata:
   annotations:
     container.apparmor.security.beta.kubernetes.io/nginx: localhost/nginx-default
 ```
+
+> **Note:** Some training slides place the AppArmor annotation key inside `securityContext`. That is incorrect — annotation keys belong under `metadata.annotations`. The `seccompProfile` field and AppArmor annotations serve different purposes and live in different parts of the manifest.
+
+On **kind** clusters, AppArmor is often not enabled on node images. seccomp demos work out of the box; AppArmor examples may be silently ignored unless the node OS has AppArmor loaded.
 
 ## Two-Layer Defense
 
@@ -95,10 +150,11 @@ spec:
 ## Best Practices
 
 1. **Default to `RuntimeDefault` seccomp** unless you have a specific reason not to — it provides solid out-of-the-box protection.
-2. **Use AppArmor** on supported nodes, especially for internet-exposed or sensitive-data workloads.
-3. **Test with restrictive profiles before production** — some apps need syscalls you might not expect.
-4. **Document required syscalls** to justify any exceptions — transparency helps maintain security hygiene.
-5. **Combine with PSA** for layered defense — PSA handles Pod-level rules; seccomp and AppArmor secure kernel-level interactions.
+2. **Use `securityContext` fields** for seccomp (always) and AppArmor (on 1.30+); know annotation syntax for older clusters and CKAD.
+3. **Use AppArmor** on supported nodes, especially for internet-exposed or sensitive-data workloads.
+4. **Test with restrictive profiles before production** — some apps need syscalls you might not expect.
+5. **Document required syscalls** to justify any exceptions — transparency helps maintain security hygiene.
+6. **Combine with PSA** for layered defense — PSA handles Pod-level rules; seccomp and AppArmor secure kernel-level interactions.
 
 ## Key Takeaway
 

@@ -51,9 +51,22 @@ PSA can operate in three modes. You can enable multiple modes on the same namesp
 
 **Best practice:** start with `audit` and `warn` before enabling `enforce`.
 
+### Quick Comparison: How Noisy Is Each Label?
+
+The **standard** you choose (`privileged`, `baseline`, `restricted`) affects how often violations occur — regardless of mode.
+
+| Label | How noisy? | Why |
+|-------|------------|-----|
+| `warn=privileged` | Very quiet | Almost nothing violates `privileged` |
+| `warn=baseline` | Moderate | Warns on privileged containers, host namespaces, etc. |
+| `warn=restricted` | Noisy | Warns on root, missing caps drop, no seccomp, etc. |
+| `audit=restricted` | Silent to user | Logs only — you won't see warnings in the terminal |
+
+Use `warn=restricted` during migration to surface issues to developers. Use `audit=restricted` when you want a paper trail without bothering users. Use `enforce=restricted` when you are ready to block non-compliant Pods.
+
 ## Pod Security Standards (PSS)
 
-PSS defines three security levels you can apply per namespace:
+PSS defines three **predefined, fixed** security levels you can apply per namespace. You **cannot customize** the rules — you only choose which level to use.
 
 | Level | Description | Typical use |
 |-------|-------------|-------------|
@@ -61,12 +74,92 @@ PSS defines three security levels you can apply per namespace:
 | `baseline` | Minimally restrictive — prevents known privilege escalations | Most non-critical application workloads |
 | `restricted` | Most secure — non-root, dropped capabilities, no privileged containers | Production apps following security best practices |
 
-### What `restricted` Enforces
+### Predefined Rules Comparison
 
-- Run as non-root
-- Drop unnecessary Linux capabilities
-- Block privileged containers
-- Disallow privilege escalation
+The table below lists the main rules enforced at each level. A check means the rule applies; "—" means no restriction at that level.
+
+| Rule | privileged | baseline | restricted |
+|------|:----------:|:--------:|:----------:|
+| **Privileged containers** (`privileged: true`) | Allowed | Blocked | Blocked |
+| **Host namespaces** (`hostNetwork`, `hostPID`, `hostIPC`) | Allowed | Blocked | Blocked |
+| **Host ports** (`hostPort` > 0) | Allowed | Blocked | Blocked |
+| **HostPath volumes** | Allowed | Restricted paths only | Blocked |
+| **Added Linux capabilities** (beyond defaults) | Allowed | Only safe caps allowed | Only `NET_BIND_SERVICE` |
+| **Unsafe sysctls** | Allowed | Blocked | Blocked |
+| **Run as root** (`runAsUser: 0`) | Allowed | Allowed | Blocked |
+| **`runAsNonRoot: true`** required | — | — | Required |
+| **`allowPrivilegeEscalation: false`** required | — | — | Required |
+| **Drop all capabilities** (`capabilities.drop: ["ALL"]`) | — | — | Required |
+| **seccomp profile** | Any | Any (incl. `Unconfined`) | `RuntimeDefault` or `Localhost` only |
+| **Volume types** | Any | Any | Only ConfigMap, Secret, emptyDir, PVC, projected |
+
+### What Each Standard Means in Practice
+
+#### `privileged`
+
+No restrictions. Use only for trusted system workloads that need full host access (CNI plugins, storage drivers, node agents).
+
+```yaml
+# Allowed under privileged — blocked under baseline and restricted
+securityContext:
+  privileged: true
+```
+
+#### `baseline`
+
+Blocks the most dangerous settings but still allows common application patterns, including running as root.
+
+Blocked examples:
+
+```yaml
+# NOT allowed under baseline
+securityContext:
+  privileged: true
+
+hostNetwork: true
+hostPID: true
+```
+
+Still allowed under baseline:
+
+```yaml
+# Allowed under baseline — blocked under restricted
+securityContext:
+  runAsUser: 0          # root is OK
+  # no capabilities.drop required
+```
+
+#### `restricted`
+
+Enforces all baseline rules **plus** strict least-privilege defaults. This is the standard tested most often on CKAD.
+
+Required settings for a compliant Pod:
+
+```yaml
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: app
+    image: nginx
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+```
+
+### CKAD: Which Standard to Remember?
+
+| Standard | CKAD priority | Focus on |
+|----------|---------------|----------|
+| `privileged` | Low | Know it means "no restrictions" |
+| `baseline` | Medium | Know what it blocks vs allows (root OK, privileged not) |
+| `restricted` | **High** | Be able to write a compliant `securityContext` from memory |
+
+Official reference: [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
 
 When applying PSA, you choose which of these three profiles applies to each namespace.
 

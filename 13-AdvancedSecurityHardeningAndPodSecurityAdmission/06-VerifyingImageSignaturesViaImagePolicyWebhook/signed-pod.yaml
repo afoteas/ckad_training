@@ -5,4 +5,4 @@ metadata:
 spec:
   containers:
   - name: app
-    image: cgr.dev/chainguard/nginx:latest
+    image: ghcr.io/afoteas/cosign-demo:1.0

@@ -100,8 +100,28 @@ Compliant `restricted` settings in this Pod:
 |---------|-------|---------|
 | `runAsNonRoot` | `true` | Pod must not run as root |
 | `runAsUser` | `1000` | Runs as a non-root UID |
+| `seccompProfile.type` | `RuntimeDefault` | Required by `restricted` — cannot use `Unconfined` |
 | `allowPrivilegeEscalation` | `false` | Prevents gaining more privileges |
 | `capabilities.drop` | `["ALL"]` | Drops all Linux capabilities |
+
+This demo uses `busybox` with `sleep 3600` as a minimal workload. The focus is the `securityContext` fields required by `restricted`, not the application image itself.
+
+### Why not `nginx:1.25`?
+
+A manifest with the same `securityContext` but `image: nginx:1.25` is **admitted** by PSA — it satisfies all `restricted` admission rules. It will still fail at runtime with `CrashLoopBackOff`:
+
+```text
+mkdir() "/var/cache/nginx/client_temp" failed (13: Permission denied)
+```
+
+Stock nginx expects to run as root (or a dedicated `nginx` user with pre-created directories). With `runAsUser: 1000` and `capabilities.drop: ["ALL"]`, the container cannot:
+
+1. **Write cache directories** — `/var/cache/nginx` is owned by root inside the image.
+2. **Bind to port 80** — ports below 1024 require `CAP_NET_BIND_SERVICE`, which `restricted` forbids when all capabilities are dropped.
+
+PSA checks the manifest at **admission time**; it does not validate whether the chosen image can actually start under those constraints.
+
+For a real nginx workload under `restricted`, use an image built for non-root operation (for example `nginxinc/nginx-unprivileged`, which listens on port 8080 and runs as UID `101`) or add writable `emptyDir` volume mounts and configure nginx to listen on a high port.
 
 ## Step 5: Deploy a Non-Compliant Pod (Restricted Namespace)
 

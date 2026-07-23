@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myservice-ingress
+spec:
+  ingressClassName: nginx           # let the NGINX controller claim this resource
+  rules:
+  - host: myservice.mydomain.com     # the public hostname (Cloudflare A record → public IP)
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myservice          # the ClusterIP Service above
+            port:
+              number: 80

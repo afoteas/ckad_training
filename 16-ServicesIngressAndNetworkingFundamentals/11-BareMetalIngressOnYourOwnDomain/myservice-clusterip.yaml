@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myservice
+spec:
+  type: ClusterIP        # Ingress fronts this — no NodePort/LoadBalancer needed
+  selector:
+    app: myapp
+  ports:
+  - port: 80             # Service port (what the Ingress targets)
+    targetPort: 8080     # container port

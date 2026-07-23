@@ -1,0 +1,16 @@
+# A standard type: LoadBalancer Service. With MetalLB installed and a pool
+# configured, its EXTERNAL-IP is populated from the pool instead of <pending>.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app
+  # Optional: pin a specific pool address (replaces deprecated spec.loadBalancerIP)
+  # annotations:
+  #   metallb.io/loadBalancerIPs: 192.168.1.245
+spec:
+  type: LoadBalancer
+  selector:
+    app: myapp
+  ports:
+  - port: 80
+    targetPort: 8080

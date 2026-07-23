@@ -1,0 +1,19 @@
+# Strategic-merge patch for the already-installed ingress-nginx controller.
+# Apply with:
+#   kubectl patch deployment ingress-nginx-controller -n ingress-nginx \
+#     --type merge --patch-file controller-hostnetwork-patch.yaml
+#
+# Makes the controller bind directly to the public node's :80/:443 and
+# schedules it on the control-plane node (which holds the public IP).
+spec:
+  template:
+    spec:
+      hostNetwork: true                    # bind directly to node :80/:443
+      dnsPolicy: ClusterFirstWithHostNet   # keep cluster DNS working under hostNetwork
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""   # the public node is the control plane
+      # If the control-plane node carries a NoSchedule taint and the Pod stays
+      # Pending, uncomment the toleration below:
+      # tolerations:
+      # - key: node-role.kubernetes.io/control-plane
+      #   effect: NoSchedule

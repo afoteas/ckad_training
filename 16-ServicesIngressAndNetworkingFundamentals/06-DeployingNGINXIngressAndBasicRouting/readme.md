@@ -4,6 +4,8 @@ This lesson installs the widely used **NGINX ingress controller** and defines an
 
 For the controller-vs-resource theory, see [05-IngressControllersAndResources](../05-IngressControllersAndResources/readme.md).
 
+> **Real-world companions:** for exposing a Service on your own domain from a **bare-metal** cluster (no cloud LoadBalancer, single public IP, Cloudflare DNS), see [11-BareMetalIngressOnYourOwnDomain](../11-BareMetalIngressOnYourOwnDomain/readme.md). To make `type: LoadBalancer` actually work on bare metal, see [12-MetalLBForBareMetalLoadBalancer](../12-MetalLBForBareMetalLoadBalancer/readme.md).
+
 ## Demo Files
 
 | File | Purpose |

@@ -1,0 +1,22 @@
+# Alternative to the hostNetwork patch: expose the controller Service on the
+# node's public IP via externalIPs. kube-proxy forwards traffic arriving at
+# that IP on 80/443 to the controller Pods.
+#
+# Replace <public-ip> with the IP already bound to the control-plane node.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  externalIPs:
+  - <public-ip>       # the IP already bound to the control-plane node

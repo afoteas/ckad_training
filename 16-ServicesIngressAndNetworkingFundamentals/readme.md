@@ -26,6 +26,8 @@ This module covers how workloads are exposed and how traffic is controlled insid
 | 08 | Network Policies Overview | **High** | podSelector, policyTypes, ingress/egress rules are tested |
 | 09 | Restricting Traffic with Network Policies | **High** | Hands-on default-deny and label-based allow rules |
 | 10 | Service Discovery via DNS & Env Vars | **High** | DNS names and FQDN cross-namespace resolution are essential |
+| 11 | Bare-Metal Ingress on Your Own Domain | Real-world | Beyond CKAD — expose a Service on a domain without a cloud LB |
+| 12 | MetalLB for Bare-Metal LoadBalancer | Real-world | Beyond CKAD — make `type: LoadBalancer` work on bare metal |
 
 ## Lessons
 
@@ -39,6 +41,8 @@ This module covers how workloads are exposed and how traffic is controlled insid
 8. `08-NetworkPoliciesOverview`
 9. `09-RestrictingTrafficWithNetworkPolicies`
 10. `10-ServiceDiscoveryViaDNSAndEnvVars`
+11. `11-BareMetalIngressOnYourOwnDomain` *(real-world, beyond CKAD)*
+12. `12-MetalLBForBareMetalLoadBalancer` *(real-world, beyond CKAD)*
 
 ## Learning Objectives
 
@@ -52,3 +56,5 @@ This module covers how workloads are exposed and how traffic is controlled insid
 - Segment cluster traffic with NetworkPolicies (ingress and egress).
 - Enforce least-privilege network access with label-based policies.
 - Resolve Services via DNS (short name and FQDN) and environment variables.
+- *(Real-world)* Expose a Service on your own domain from a bare-metal cluster with `hostNetwork`/`externalIPs`.
+- *(Real-world)* Use MetalLB to make `type: LoadBalancer` work on bare metal.

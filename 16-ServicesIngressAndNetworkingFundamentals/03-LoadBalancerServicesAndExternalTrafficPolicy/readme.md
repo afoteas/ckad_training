@@ -56,6 +56,24 @@ Controls how traffic is routed once it reaches a node — which affects **client
 - **Multi-hop routing** (LB → NodePort → Pod) adds complexity and possible cross-node latency; `Cluster` NAT makes tracing harder.
 - **Layer 4 only** — LoadBalancer does basic TCP/UDP. For Layer 7 features (URL routing, SSL termination, path routing) use an **Ingress**.
 
+## How CKAD Tests This
+
+The exam runs on a **plain kubeadm cluster with no cloud provider** — there is no real load balancer to provision, so a `type: LoadBalancer` Service will sit at `EXTERNAL-IP: <pending>` (exactly like kind/minikube locally). You will **not** be asked to reach a live cloud LB.
+
+What is actually testable:
+
+- **Creating the Service object** — the grader checks the resulting spec (`type: LoadBalancer`, selector, `port`/`targetPort`), not that an external IP was assigned. Know the fast imperative forms:
+
+```bash
+kubectl expose deployment web-app --type=LoadBalancer --port=80 --target-port=8080
+# or
+kubectl create service loadbalancer my-lb --tcp=80:8080
+```
+
+- **Concepts** — LoadBalancer is Layer 4 and cloud-only; it stays `Pending` on bare metal; Ingress is the Layer 7 alternative.
+
+Do your **hands-on** practice with ClusterIP, NodePort, and Ingress (fully testable in kind). For LoadBalancer, just be fast at generating the YAML and able to explain it.
+
 ## CKAD Tips
 
 - LoadBalancer stays `Pending` without cloud integration — expected locally.

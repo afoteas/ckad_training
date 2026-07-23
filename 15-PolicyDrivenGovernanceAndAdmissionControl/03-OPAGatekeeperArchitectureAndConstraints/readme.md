@@ -2,7 +2,94 @@
 
 OPA Gatekeeper is a policy engine that lets you declare **policies as code** and enforces them automatically at admission time — bringing consistency and governance to the cluster.
 
-For a hands-on Gatekeeper demo, see [04-EnforcingResourceLimitsWithGatekeeper](../04-EnforcingResourceLimitsWithGatekeeper/readme.md).
+For admission webhook theory, see [01-AdmissionControllerFundamentals](../01-AdmissionControllerFundamentals/readme.md). For Kyverno's YAML-based approach, see [02-CreatingASimpleMutatingWebhook](../02-CreatingASimpleMutatingWebhook/readme.md). For a hands-on Gatekeeper demo, see [04-EnforcingResourceLimitsWithGatekeeper](../04-EnforcingResourceLimitsWithGatekeeper/readme.md).
+
+## What is OPA?
+
+**OPA** (Open Policy Agent) is a general-purpose **policy engine**. It is not Kubernetes-specific — you can use it for APIs, CI/CD, Terraform, SSH access, and more.
+
+The model is always the same:
+
+```text
+Input (JSON)  +  Policy (Rego)  →  Decision (allow / deny + message)
+```
+
+| Piece | What it is |
+|-------|------------|
+| **Input** | Data to evaluate — e.g. a Pod manifest converted to JSON |
+| **Rego** | OPA's policy language — rules like "deny if privileged" |
+| **Output** | `allow` or `deny` (and optional violation messages) |
+
+### Minimal Rego example (concept)
+
+**Question:** Should this Pod be allowed?
+
+```json
+{
+  "kind": "Pod",
+  "spec": {
+    "containers": [{
+      "name": "app",
+      "securityContext": { "privileged": true }
+    }]
+  }
+}
+```
+
+**Rego policy (simplified):**
+
+```rego
+deny[msg] {
+  input.spec.containers[_].securityContext.privileged == true
+  msg := "privileged containers are not allowed"
+}
+```
+
+**Result:** `deny` — "privileged containers are not allowed."
+
+You do not run OPA by hand on every `kubectl apply`. **Gatekeeper** embeds OPA and calls it automatically from the admission webhook.
+
+## OPA vs Gatekeeper vs Kyverno vs manual webhooks
+
+| | **OPA** | **Gatekeeper** | **Kyverno** | **Manual webhook** |
+|--|---------|----------------|-------------|-------------------|
+| **What it is** | Policy engine + Rego | Kubernetes integration for OPA | Kubernetes policy engine (YAML) | Custom app you build |
+| **Policy language** | **Rego** | Rego (in ConstraintTemplate) | **YAML** | Any (Go, Python, …) |
+| **K8s admission** | Via Gatekeeper (or other integrators) | **Validating** webhook (+ audit) | Mutate + validate + generate | Mutate and/or validate |
+| **You typically write** | Rego policies | ConstraintTemplate + Constraint | ClusterPolicy | Server code + WebhookConfiguration |
+
+**Mental model:**
+
+```text
+OPA        = brain (Rego evaluation)
+Gatekeeper = Kubernetes adapter (webhook + CRDs + audit) that feeds Pod JSON into OPA
+Kyverno    = alternative adapter — YAML policies instead of Rego
+```
+
+All three sit in the same place in the [admission flow](../01-AdmissionControllerFundamentals/readme.md): after auth/RBAC, before etcd.
+
+### Gatekeeper admission flow (validating)
+
+Gatekeeper is primarily a **validating** webhook — it does not patch objects like Kyverno mutate policies; it **allows or denies**:
+
+```text
+1. You: kubectl apply -f pod.yaml
+
+2. API server: authentication + RBAC OK
+
+3. Mutating webhooks run first (if any — e.g. Kyverno inject labels)
+
+4. API server → POST Pod JSON (AdmissionReview) → Gatekeeper webhook
+
+5. Gatekeeper: finds matching Constraints → runs Rego in OPA engine
+
+6. OPA returns: allow OR deny (+ message)
+
+7a. allowed: true  → Pod stored in etcd → scheduler/kubelet
+7b. allowed: false → error to kubectl, nothing in etcd
+```
+
+Same **true/false** pattern as a manual validating webhook in lesson 01 — Gatekeeper + OPA replace your custom `/validate` handler and Rego replaces your Go `if` statements.
 
 ## Why Gatekeeper
 
@@ -20,20 +107,48 @@ Gatekeeper enforces rules automatically instead of relying on people to remember
 
 ## Architecture
 
-Three pieces work together:
+Three pieces work together inside (and around) Gatekeeper:
 
 | Component | Role |
 |-----------|------|
-| **OPA Engine** | Evaluates policies written in the **Rego** language — where the logic lives |
-| **Admission Webhook** | Intercepts API requests and evaluates them against your policies; rejects violations |
-| **Audit System** | Periodically scans **already-deployed** resources to detect drift after creation |
-
-The audit system matters because admission controllers only check at **creation** time — resources can drift later. Together these make the cluster **continuously** governed, not just governed at creation.
+| **OPA Engine** | Evaluates policies written in **Rego** — the decision logic ("is this Pod compliant?") |
+| **Admission Webhook** | Gatekeeper's validating hook — receives Pod JSON from the API server, passes it to OPA, returns `allowed: true/false` |
+| **Audit System** | Periodically scans **already-deployed** resources against the same policies — catches drift after creation |
 
 ```text
-API request → Admission webhook → OPA engine evaluates Rego → allow / deny
-Running cluster ← Audit system periodically re-scans for violations
+                    ┌─────────────────┐
+kubectl apply ─────►│  API server     │
+                    └────────┬────────┘
+                             │ AdmissionReview (Pod JSON)
+                             ▼
+                    ┌─────────────────┐
+                    │  Gatekeeper     │
+                    │  admission hook │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │   OPA engine    │◄── Rego from ConstraintTemplate
+                    │ (evaluate input)│
+                    └────────┬────────┘
+                             │ allow / deny
+                             ▼
+                    etcd (only if allowed)
+
+Running cluster ◄──── Audit controller re-scans existing objects
 ```
+
+The audit system matters because admission only checks at **create/update** time — resources can drift later (e.g. someone patches around a policy). Audit makes governance **continuous**, not only at the gate.
+
+### How CRDs map to OPA
+
+| CRD | Maps to… |
+|-----|----------|
+| **ConstraintTemplate** | Rego policy blueprint installed in the cluster (the reusable rule) |
+| **Constraint** | Parameters + scope for one use of that template (e.g. "Pods must have label `team`") |
+| **Config / Audit** | What to scan in the background and how audit reports work |
+
+When a Pod is admitted, Gatekeeper loads the matching **Constraint**, feeds the Pod JSON as **`input`** to OPA, and OPA runs the **Rego** from the linked **ConstraintTemplate**.
 
 ## Custom Resource Definitions
 
@@ -90,4 +205,4 @@ Gatekeeper and Rego are **CKS/platform** topics, not CKAD. Understand conceptual
 
 ## Key Takeaway
 
-Gatekeeper brings policy-as-code to Kubernetes: the OPA engine evaluates Rego, the admission webhook enforces at creation, and the audit system catches drift over time.
+**OPA** is the Rego policy engine. **Gatekeeper** plugs OPA into Kubernetes as a validating admission webhook (plus audit): you write **ConstraintTemplate** (Rego) + **Constraint** (parameters), and OPA decides allow/deny before objects reach etcd — same validating pattern as lesson 01, without building your own webhook server.

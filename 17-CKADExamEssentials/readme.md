@@ -10,6 +10,7 @@ Study these modules in order. Links point to each module's readme (with per-less
 
 | Priority | Module | Focus |
 |----------|--------|-------|
+| **Foundation** | [00-KubernetesClusterArchitecture](../00-KubernetesClusterArchitecture/readme.md) | Control plane, nodes, add-ons, request flow |
 | **Start** | [17-CKADExamEssentials](readme.md) | Exam mechanics (this module) |
 | **1** | [01-WorkloadandContainerImageFundamentals](../01-WorkloadandContainerImageFundamentals/readme.md) | Workloads, multicontainer Pods, volumes, labels, DaemonSet |
 | **2** | [11-ApplicationConfigurationAndSecurityFundamentals](../11-ApplicationConfigurationAndSecurityFundamentals/readme.md) | ConfigMap, Secret, securityContext, RBAC, Downward API |

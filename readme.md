@@ -1,5 +1,7 @@
 # K8s training
 
+> **New to Kubernetes?** Read [00-KubernetesClusterArchitecture](00-KubernetesClusterArchitecture/readme.md) first — control plane, nodes, add-ons, and request flow with diagrams.
+
 > **CKAD exam prep:** Start with [17-CKADExamEssentials](17-CKADExamEssentials/readme.md) for the full study path, timed scenarios, and module priority guide.
 
 ## Must-know kubectl commands (CKAD)
@@ -65,6 +67,7 @@ kubectl auth can-i list pods --as=system:serviceaccount:<ns>:<sa> -n <ns>
 
 | Priority | Module | Topic |
 |----------|--------|-------|
+| **Foundation** | [00-KubernetesClusterArchitecture](00-KubernetesClusterArchitecture/readme.md) | Control plane, nodes, add-ons, request flow |
 | Start | [17-CKADExamEssentials](17-CKADExamEssentials/readme.md) | Exam format, imperative kubectl, timed practice |
 | 1 | [01-WorkloadandContainerImageFundamentals](01-WorkloadandContainerImageFundamentals/readme.md) | Workloads, volumes, labels, DaemonSet |
 | 2 | [11-ApplicationConfigurationAndSecurityFundamentals](11-ApplicationConfigurationAndSecurityFundamentals/readme.md) | ConfigMap, Secret, securityContext, RBAC |

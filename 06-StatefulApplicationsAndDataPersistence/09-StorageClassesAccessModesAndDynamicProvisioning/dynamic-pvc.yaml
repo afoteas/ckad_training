@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dynamic-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: standard          # use your cluster's default StorageClass name
+  resources:
+    requests:
+      storage: 1Gi

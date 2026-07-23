@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-logger
+spec:
+  selector:
+    matchLabels:
+      app: node-logger
+  template:
+    metadata:
+      labels:
+        app: node-logger
+    spec:
+      containers:
+      - name: logger
+        image: busybox
+        command: ["sh", "-c", "while true; do echo \"logging from $(hostname)\"; sleep 30; done"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

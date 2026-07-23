@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: projected-demo
+  labels:
+    app: projected
+    version: "1.0"
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "echo '--- config ---' && cat /all/config.txt && echo '--- pod name ---' && cat /all/podname && sleep 3600"]
+    volumeMounts:
+    - name: all-in-one
+      mountPath: /all
+      readOnly: true
+  volumes:
+  - name: all-in-one
+    projected:
+      sources:
+      - configMap:
+          name: app-config
+          items:
+          - key: welcome.txt
+            path: config.txt
+      - downwardAPI:
+          items:
+          - path: podname
+            fieldRef:
+              fieldPath: metadata.name

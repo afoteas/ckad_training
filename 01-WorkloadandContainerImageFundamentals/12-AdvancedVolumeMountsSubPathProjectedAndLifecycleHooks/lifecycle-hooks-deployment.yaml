@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lifecycle-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lifecycle-demo
+  template:
+    metadata:
+      labels:
+        app: lifecycle-demo
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: app
+        image: nginx
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "echo started > /usr/share/nginx/html/ready"]
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]   # drain connections before SIGTERM

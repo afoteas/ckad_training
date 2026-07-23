@@ -4,7 +4,7 @@ This module covers how Kubernetes applications are configured, secured, and gran
 
 ## CKAD Exam Relevance
 
-**Priority: Very High — core exam material.** This is one of the most important modules for CKAD. You will almost certainly need to create or edit **ConfigMaps** and **Secrets** (as env vars or mounted volumes), configure **securityContext** (`runAsNonRoot`, `capabilities.drop`, `readOnlyRootFilesystem`), set up **ServiceAccounts** with **Role/RoleBinding**, and use the **Downward API**. Lessons 01–03 and 05–07 are must-study. Encrypting secrets at rest (lesson 04) and live config reload (lesson 08) are useful in production but rarely tested hands-on. If you only have time for one configuration module, make it this one.
+**Priority: Very High — core exam material.** This is one of the most important modules for CKAD. You will almost certainly need to create or edit **ConfigMaps** and **Secrets** (as env vars or mounted volumes), configure **securityContext** (`runAsNonRoot`, `capabilities.drop`, `readOnlyRootFilesystem`), set up **ServiceAccounts** with **Role/RoleBinding**, verify permissions with **`kubectl auth can-i`**, and use the **Downward API**. Lessons 01–03, 05–07, and 09 are must-study. Encrypting secrets at rest (lesson 04) and live config reload (lesson 08) are useful in production but rarely tested hands-on. If you only have time for one configuration module, make it this one.
 
 ## Lesson CKAD Relevance
 
@@ -18,6 +18,7 @@ This module covers how Kubernetes applications are configured, secured, and gran
 | 06 | Configuring ServiceAccounts and RBAC for Applications | **High** | ServiceAccount + Role + RoleBinding manifests appear on most CKAD exams |
 | 07 | The Downward API and Dynamic Config | **High** | Exposing Pod metadata via `fieldRef` and `resourceFieldRef` is tested |
 | 08 | Implementing a Live Config Reload Pattern | Low | Config reload sidecars are production patterns, not exam tasks |
+| 09 | Troubleshooting RBAC with kubectl auth can-i | **High** | Fast verification of Role/RoleBinding correctness during the exam |
 
 ## Lesson Order
 
@@ -29,6 +30,7 @@ This module covers how Kubernetes applications are configured, secured, and gran
 6. `06-ConfiguringServiceAccountsAndRBACForApplications`
 7. `07-TheDownwardAPIAndDynamicConfig`
 8. `08-ImplementingALiveConfigReloadPattern`
+9. `09-TroubleshootingRBACWithKubectlAuthCanI`
 
 ## What You Learn
 
@@ -38,6 +40,7 @@ This module covers how Kubernetes applications are configured, secured, and gran
 - harden workloads with securityContext and Pod Security Standards
 - grant least-privilege access with ServiceAccounts, Roles, and RoleBindings
 - expose Pod metadata to containers via the Downward API
+- verify RBAC with `kubectl auth can-i`
 
 ## Objectives
 
@@ -46,3 +49,4 @@ This module covers how Kubernetes applications are configured, secured, and gran
 - configure securityContext for non-root, least-privilege containers
 - create a ServiceAccount and bind it to a Role with a RoleBinding
 - use the Downward API to pass Pod labels and annotations to containers
+- confirm ServiceAccount permissions with `kubectl auth can-i`

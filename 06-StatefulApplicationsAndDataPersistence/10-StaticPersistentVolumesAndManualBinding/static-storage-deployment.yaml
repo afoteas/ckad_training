@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-storage-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-storage-app
+  template:
+    metadata:
+      labels:
+        app: static-storage-app
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "echo static-pv-data > /data/marker.txt && cat /data/marker.txt && sleep 3600"]
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: static-pvc

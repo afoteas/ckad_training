@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynamic-storage-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dynamic-storage-app
+  template:
+    metadata:
+      labels:
+        app: dynamic-storage-app
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "echo persisted > /data/out.txt && cat /data/out.txt && sleep 3600"]
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: dynamic-data

@@ -22,10 +22,60 @@ For Rego basics, see [07-RegoPolicyAndUnitTestWriting](../07-RegoPolicyAndUnitTe
 
 - Conftest CLI (no Kubernetes cluster required)
 
+### macOS
+
 ```bash
-brew install conftest   # macOS; use your distro's package manager on Linux
+brew install conftest
 conftest --version
 ```
+
+### Linux (including WSL2)
+
+Download the latest release binary from GitHub ([official install docs](https://www.conftest.dev/install/)):
+
+```bash
+LATEST_VERSION=$(curl -fsSL https://api.github.com/repos/open-policy-agent/conftest/releases/latest \
+  | grep -m1 '"tag_name":' | cut -d '"' -f4 | sed 's/^v//')
+
+ARCH="$(uname -m)"
+case "$ARCH" in
+  x86_64|amd64) CONTEST_ARCH="x86_64" ;;
+  aarch64|arm64) CONTEST_ARCH="arm64" ;;
+  *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+curl -fsSL -o conftest.tar.gz \
+  "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_VERSION}/conftest_${LATEST_VERSION}_Linux_${CONTEST_ARCH}.tar.gz"
+
+tar xzf conftest.tar.gz conftest
+sudo install conftest /usr/local/bin/conftest
+rm -f conftest conftest.tar.gz
+
+conftest --version
+```
+
+Install to `~/.local/bin` instead if you prefer not to use `sudo`:
+
+```bash
+mkdir -p ~/.local/bin
+install conftest ~/.local/bin/conftest
+export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc to persist
+```
+
+### Other options
+
+```bash
+# Homebrew on Linux (same brew as macOS — works on WSL2)
+brew install conftest
+
+# Go toolchain
+CGO_ENABLED=0 go install github.com/open-policy-agent/conftest@latest
+
+# Docker (no local install)
+docker run --rm -v "$(pwd):/project" openpolicyagent/conftest test /project/bad-pod-conftest.yaml
+```
+
+Run commands from this lesson's directory (`08-ValidatingManifestsLocallyWithConftest/`) so Conftest finds the `policy/` folder.
 
 ## Policy Directory
 

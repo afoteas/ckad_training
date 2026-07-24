@@ -1,14 +1,12 @@
 # Service Discovery via DNS & Env Vars
 
-Service discovery lets containers find and connect to their dependencies **without knowing unstable Pod IPs**. Kubernetes maps stable virtual IPs (ClusterIPs) and DNS names to the underlying Pod endpoints.
+This lesson is about **how a client Pod finds a Service** — not how a Service finds its Pods (that is the Service `selector` + Endpoints from earlier lessons).
 
-## Why It Matters
-
-Pods are constantly created, destroyed, and rescheduled, so their IPs are temporary. Relying on Pod IPs breaks communication. Services give a dependable, stable address; discovery is how clients find that address.
+Service discovery lets containers connect to dependencies **without hard-coding unstable Pod IPs**. Kubernetes gives each Service a stable ClusterIP and DNS name; discovery is how your app learns that address.
 
 ## DNS-Based Discovery (preferred)
 
-When a Service is created, the cluster DNS (**CoreDNS** or kube-dns) registers a DNS record. Each Service gets a **Fully Qualified Domain Name (FQDN)**:
+When a Service is created, **CoreDNS** registers a DNS record. Each Service gets a **Fully Qualified Domain Name (FQDN)**:
 
 ```text
 <service>.<namespace>.svc.cluster.local
@@ -17,35 +15,194 @@ When a Service is created, the cluster DNS (**CoreDNS** or kube-dns) registers a
 - Pods in the **same namespace** can use just the short name (`<service>`).
 - Cross-namespace access requires the FQDN (or at least `<service>.<namespace>`).
 
-Cluster DNS intercepts the lookup and resolves the name to the Service's ClusterIP, which routes to the target Pods.
-
-### Example
-
-```bash
-nslookup mysql.dev.svc.cluster.local
-# → resolves to the stable ClusterIP, e.g. 10.100.23.15
-```
-
-The client then connects to that IP on the Service port.
+Cluster DNS resolves the name to the Service's ClusterIP, which routes to the target Pods.
 
 ## Environment Variable Discovery (legacy)
 
-When a Pod is created, the kubelet injects environment variables for **Services that already exist** in that Pod's namespace:
+When a Pod is **created**, the **kubelet** automatically injects environment variables for every Service that **already exists** in that Pod's namespace. You do **not** declare these in your Pod YAML — they appear inside the container at runtime.
+
+### Naming rule
+
+Take the Service name, uppercase it, replace `-` with `_`, then add the suffix:
+
+| Service name | Injected variables (the ones apps actually use) |
+|---|---|
+| `backend-api` | `BACKEND_API_SERVICE_HOST`, `BACKEND_API_SERVICE_PORT` |
+| `mysql` | `MYSQL_SERVICE_HOST`, `MYSQL_SERVICE_PORT` |
+| `redis-cache` | `REDIS_CACHE_SERVICE_HOST`, `REDIS_CACHE_SERVICE_PORT` |
+
+Kubernetes also injects extra `*_PORT_*_TCP_*` variables (shown in `printenv`); legacy apps typically read only `*_SERVICE_HOST` and `*_SERVICE_PORT`.
+
+### DNS vs env var — same destination, different lookup
 
 ```text
-<SERVICE_NAME>_SERVICE_HOST   # ClusterIP
-<SERVICE_NAME>_SERVICE_PORT   # port
+# DNS (hostname → ClusterIP resolved by CoreDNS)
+wget http://backend-api
+
+# Env vars (IP + port read from shell environment)
+wget http://${BACKEND_API_SERVICE_HOST}:${BACKEND_API_SERVICE_PORT}
 ```
 
-### Example
+Both hit the same ClusterIP. DNS uses a name; env vars use the IP the kubelet wrote into the container environment.
+
+**Key drawback:** if a Service is created *after* the Pod, the Pod must be **restarted** to see the new variables. Prefer DNS unless you must support legacy apps.
+
+## Demo Files
+
+| File | Purpose |
+|------|---------|
+| `backend-and-service.yaml` | nginx Deployment + `backend-api` ClusterIP Service |
+| `client-pod.yaml` | Busybox Pod for DNS tests (`wget http://backend-api`) |
+| `legacy-client-pod.yaml` | Busybox Pod that connects using `$BACKEND_API_SERVICE_HOST` only |
+
+## Step 1: Deploy the Service First
+
+Apply the backend **before** the client Pod — env vars are only injected for Services that already exist when the Pod starts.
 
 ```bash
-printenv | grep MYSQL
-# MYSQL_SERVICE_HOST=10.100.23.15
-# MYSQL_SERVICE_PORT=3306
+kubectl apply -f backend-and-service.yaml
+kubectl get svc backend-api
 ```
 
-The app reads these variables to locate the Service.
+Note the `CLUSTER-IP` (e.g. `10.96.x.x`). You will see this same address from DNS and from env vars.
+
+## Step 2: DNS Discovery
+
+Create the client Pod, then resolve the Service by name:
+
+```bash
+kubectl apply -f client-pod.yaml
+kubectl wait --for=condition=ready pod/discovery-client --timeout=60s
+```
+
+**Short name** (same namespace):
+
+```bash
+kubectl exec discovery-client -- nslookup backend-api
+```
+
+**FQDN** (works from any namespace):
+
+```bash
+kubectl exec discovery-client -- nslookup backend-api.default.svc.cluster.local
+```
+
+Both should return the Service's ClusterIP. Connect over HTTP using the short name:
+
+```bash
+kubectl exec discovery-client -- wget -qO- http://backend-api
+```
+
+You should see the nginx welcome page HTML.
+
+## Step 3: Environment Variable Discovery
+
+### 3a. See what the kubelet injected
+
+When `discovery-client` started, the kubelet saw `backend-api` already existed and injected env vars automatically:
+
+```bash
+kubectl exec discovery-client -- printenv | grep BACKEND_API
+```
+
+Example output:
+
+```text
+BACKEND_API_SERVICE_HOST=10.96.x.x    ← ClusterIP (this is what apps use)
+BACKEND_API_SERVICE_PORT=80           ← Service port (this is what apps use)
+BACKEND_API_PORT=tcp://10.96.x.x:80
+BACKEND_API_PORT_80_TCP=tcp://10.96.x.x:80
+BACKEND_API_PORT_80_TCP_ADDR=10.96.x.x
+BACKEND_API_PORT_80_TCP_PORT=80
+BACKEND_API_PORT_80_TCP_PROTO=tcp
+```
+
+Compare with the Service ClusterIP — they match:
+
+```bash
+kubectl get svc backend-api -o jsonpath='ClusterIP: {.spec.clusterIP}{"\n"}'
+kubectl exec discovery-client -- sh -c 'echo "Env var:  $BACKEND_API_SERVICE_HOST"'
+```
+
+### 3b. Connect using env vars (no DNS hostname)
+
+Deploy a client that **never uses the name `backend-api`** — only the injected variables:
+
+```bash
+kubectl apply -f legacy-client-pod.yaml
+kubectl wait --for=condition=ready pod/legacy-client --timeout=60s
+kubectl logs legacy-client
+```
+
+You should see output like:
+
+```text
+=== Legacy env-var discovery (no DNS hostname used) ===
+BACKEND_API_SERVICE_HOST=10.96.x.x
+BACKEND_API_SERVICE_PORT=80
+Fetching http://10.96.x.x:80 ...
+<!DOCTYPE html>
+<html>
+<head>
+...
+```
+
+The container command in `legacy-client-pod.yaml` is the whole point — a legacy app does this in code:
+
+```bash
+# pseudocode — same idea in Python, Java, etc.
+host = os.environ["BACKEND_API_SERVICE_HOST"]
+port = os.environ["BACKEND_API_SERVICE_PORT"]
+connect(host, port)
+```
+
+Step 2 used `http://backend-api` (DNS). Step 3b uses `http://$BACKEND_API_SERVICE_HOST:$BACKEND_API_SERVICE_PORT` (env vars). Same backend, two ways to find it.
+
+## Step 4: Cross-Namespace DNS
+
+Create a Service in another namespace and reach it by FQDN from `discovery-client`:
+
+```bash
+kubectl create namespace data
+
+kubectl create deployment db --image=nginx:stable -n data
+kubectl expose deployment db --port=80 -n data
+```
+
+Resolve using the namespace-qualified name:
+
+```bash
+kubectl exec discovery-client -- nslookup db.data.svc.cluster.local
+kubectl exec discovery-client -- wget -qO- http://db.data.svc.cluster.local
+```
+
+The short name `db` does **not** work from `default` — only `db.data` or the full FQDN.
+
+## Step 5: Env Var Timing Trap
+
+Env vars are fixed at Pod creation. Create a new Service **after** the client Pod is running:
+
+```bash
+kubectl create deployment cache --image=nginx:stable
+kubectl expose deployment cache --port=80
+```
+
+The running client Pod has **no** `CACHE_*` variables:
+
+```bash
+kubectl exec discovery-client -- printenv | grep CACHE || echo "no CACHE env vars"
+```
+
+Recreate the Pod so the kubelet injects them:
+
+```bash
+kubectl delete pod discovery-client
+kubectl apply -f client-pod.yaml
+kubectl wait --for=condition=ready pod/discovery-client --timeout=60s
+kubectl exec discovery-client -- printenv | grep CACHE_SERVICE
+```
+
+DNS would have worked immediately without a restart — that is why DNS is preferred.
 
 ## DNS vs Environment Variables
 
@@ -56,20 +213,25 @@ The app reads these variables to locate the Service.
 | Timing | Works anytime | Only populated at **Pod creation** |
 | Main use | Modern default | Backward compatibility |
 
-**Key drawback of env vars:** if a Service is created *after* the Pod, the Pod must be **restarted** to see the new variables. Prefer DNS unless you must support legacy apps.
+## Cleanup
 
-## Practical Considerations
-
-- To reach a Service in another namespace, use the FQDN including the namespace: `db-service.data-namespace`.
-- **CoreDNS must stay healthy** — if it fails or is overloaded, all DNS-based discovery breaks cluster-wide.
-- Test both short-name and FQDN resolution in a realistic staging environment.
+```bash
+kubectl delete -f legacy-client-pod.yaml -f client-pod.yaml -f backend-and-service.yaml
+kubectl delete deployment cache --ignore-not-found
+kubectl delete svc cache --ignore-not-found
+kubectl delete deployment db -n data --ignore-not-found
+kubectl delete svc db -n data --ignore-not-found
+kubectl delete namespace data --ignore-not-found
+```
 
 ## CKAD Tips
 
 - Memorize the FQDN pattern: `service.namespace.svc.cluster.local`.
 - Same namespace → short name works; different namespace → include the namespace.
-- Env-var discovery only reflects Services that existed **before** the Pod started.
-- Debug DNS with `kubectl run tmp --rm -it --image=busybox -- nslookup <service>`.
+- Env-var discovery only reflects Services that existed **before** the Pod started; you never put them in the Pod YAML — the kubelet injects them.
+- Service `backend-api` → `BACKEND_API_SERVICE_HOST` + `BACKEND_API_SERVICE_PORT` (uppercase, `-` → `_`).
+- Env vars are **background knowledge** for CKAD; DNS/FQDN is what you need to know cold.
+- Debug DNS with `kubectl exec <pod> -- nslookup <service>` or a temporary busybox Pod.
 
 ## Key Takeaway
 

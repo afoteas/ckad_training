@@ -1,0 +1,20 @@
+# Deploy ONLY after backend-and-service.yaml is applied.
+# The kubelet injects BACKEND_API_* env vars at Pod creation — nothing to declare in this YAML.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: legacy-client
+spec:
+  containers:
+  - name: client
+    image: busybox:stable
+    command:
+    - sh
+    - -c
+    - |
+      echo "=== Legacy env-var discovery (no DNS hostname used) ==="
+      echo "BACKEND_API_SERVICE_HOST=${BACKEND_API_SERVICE_HOST}"
+      echo "BACKEND_API_SERVICE_PORT=${BACKEND_API_SERVICE_PORT}"
+      echo "Fetching http://${BACKEND_API_SERVICE_HOST}:${BACKEND_API_SERVICE_PORT} ..."
+      wget -qO- "http://${BACKEND_API_SERVICE_HOST}:${BACKEND_API_SERVICE_PORT}" | head -5
+      sleep 3600

@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-to-db
+spec:
+  podSelector:
+    matchLabels:
+      tier: api               # affected Pods (outbound restricted)
+  policyTypes:
+  - Egress                    # control outgoing traffic only
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: database      # allowed destination
+    ports:
+    - protocol: TCP
+      port: 5432

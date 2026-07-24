@@ -377,3 +377,163 @@ can list refs and generate manifests from the repository.
 - Only the Zscaler root CA is required here because Zscaler re-signs with that root; if an
   intermediate is presented, append it to the same PEM value.
 - The `argocd-tls-certs-cm` key must be the exact hostname (no scheme, no path).
+
+## Testing Ingress on kind + WSL2 without port-forward
+
+### Issue
+
+Lesson 06 suggests testing with `curl http://demo.kube.com`, but on a local kind cluster
+behind WSL2 (and often Zscaler) this fails even after installing ingress-nginx:
+
+- `demo.kube.com` does not resolve without a hosts entry
+- `curl http://demo.kube.com` uses port **80**, but nothing on the host listens there
+- The ingress controller's HTTP **nodePort** (auto-assigned, e.g. `31105`) is not published
+  to the host — only the port in the kind config is (see `kind-multi-node-config.yaml`:
+  `hostPort: 8080` → `containerPort: 30080`)
+
+### Root Cause
+
+Four separate problems must be solved:
+
+1. **DNS** — map `demo.kube.com` to `127.0.0.1` via `/etc/hosts` (WSL2 Linux file, not
+   Windows, when curling from inside WSL).
+2. **Host entry point** — kind publishes `localhost:8080` → node port `30080` only.
+3. **Ingress wiring** — the ingress-nginx controller Service must use **nodePort `30080`**
+   for HTTP so traffic hitting `localhost:8080` reaches the controller.
+4. **`externalTrafficPolicy: Local` from the install manifest** — lesson 06 installs
+   ingress-nginx from the upstream **cloud** manifest:
+
+   ```bash
+   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+   ```
+
+   That remote YAML defines the `ingress-nginx-controller` Service with
+   `externalTrafficPolicy: Local` (not in your local `nginx-ingress.yaml` — it is baked
+   into the install manifest's Service spec). On real cloud clusters this preserves the
+   client source IP. On kind it breaks host access when:
+
+   - kind `extraPortMappings` publish port `30080` on the **control-plane** only, and
+   - the controller Pod is scheduled on a **worker** node (common on multi-node clusters).
+
+   With `Local`, NodePort traffic is only handled by nodes that have a **local** controller
+   Pod. Traffic from the host hits the control-plane on `:8080` → nodePort `30080`, finds
+   no local endpoint, and **hangs** (TCP connects, HTTP never responds). Curl from inside
+   the control-plane container (`docker exec ... curl 127.0.0.1:30080`) may still work
+   because that path is not treated the same as external NodePort traffic.
+
+A hosts file alone cannot fix the port mismatch or the `Local` policy issue.
+
+### Applied Solution
+
+1. Add a hosts entry **inside WSL2**:
+
+   ```bash
+   sudo nano /etc/hosts
+   ```
+
+   Add:
+
+   ```text
+   127.0.0.1  demo.kube.com
+   ```
+
+   Verify:
+
+   ```bash
+   getent hosts demo.kube.com
+   ```
+
+2. Patch the ingress controller Service so HTTP uses nodePort `30080` (matches kind's
+   `extraPortMappings`):
+
+   ```bash
+   kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[
+     {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30080}
+   ]'
+   ```
+
+   Confirm:
+
+   ```bash
+   kubectl get svc -n ingress-nginx ingress-nginx-controller
+   # PORT(S) should include 80:30080/TCP
+   ```
+
+   **Collision check:** if lesson 02's `external-web` NodePort Service still uses
+   `30080`, delete it first or change one of the Services to a different nodePort:
+
+   ```bash
+   kubectl delete svc external-web
+   # or: kubectl patch svc external-web --type='json' -p='[
+   #   {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30081}
+   # ]'
+   ```
+
+3. Change `externalTrafficPolicy` from `Local` to `Cluster` on the controller Service
+   (required on kind when the controller Pod is not on the control-plane node):
+
+   ```bash
+   kubectl patch svc ingress-nginx-controller -n ingress-nginx \
+     -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'
+   ```
+
+   Verify:
+
+   ```bash
+   kubectl get svc ingress-nginx-controller -n ingress-nginx \
+     -o jsonpath='{.spec.externalTrafficPolicy}{"\n"}'
+   # should print: Cluster
+   ```
+
+   Inspect where the setting came from (upstream manifest, not your Ingress resource):
+
+   ```bash
+   kubectl get svc ingress-nginx-controller -n ingress-nginx -o yaml | grep externalTrafficPolicy
+   ```
+
+4. Deploy the demo app and Ingress (lesson 06 manifests):
+
+   ```bash
+   kubectl apply -f nginx-deployment.yaml -f clusterip-service.yaml -f nginx-ingress.yaml
+   kubectl get ingress
+   ```
+
+5. Bypass Zscaler proxy for localhost (if `http_proxy`/`https_proxy` are set):
+
+   ```bash
+   export NO_PROXY=demo.kube.com,localhost,127.0.0.1
+   curl --noproxy demo.kube.com http://demo.kube.com:8080
+   ```
+
+   Port `8080` is required because kind maps host `8080` → node `30080`, not host `80`.
+   Ingress routes on the **Host header** (`demo.kube.com`), so `:8080` in the URL is fine.
+
+### Verification
+
+```bash
+# Controller healthy
+kubectl get pods -n ingress-nginx
+
+# Ingress rule present
+kubectl get ingress demo-ingress
+
+# Should return nginx welcome page
+curl --noproxy demo.kube.com http://demo.kube.com:8080
+```
+
+### Notes
+
+- WSL2 may regenerate `/etc/hosts` on restart; for a persistent entry, set
+  `generateHosts = false` in `/etc/wsl.conf` (optional for lab work).
+- To use `curl http://demo.kube.com` with **no port** (true port 80), the kind cluster
+  must be created with an extra mapping such as `hostPort: 80` → `containerPort: 30080`
+  — the default config only maps `8080`.
+- Alternative without hosts file: send the Host header explicitly —
+  `curl -H "Host: demo.kube.com" http://localhost:8080` (still requires steps 2–3 above).
+- `type: LoadBalancer` on the ingress controller stays `EXTERNAL-IP: <pending>` on kind;
+  that is expected — NodePort + `extraPortMappings` is the local access path.
+- Re-applying the upstream `deploy.yaml` will reset `externalTrafficPolicy` to `Local` and
+  may reset the nodePort — re-run steps 2 and 3 after a fresh ingress-nginx install.
+- Symptom of the `Local` policy issue: `curl` to `:8080` **connects** but **times out**
+  with 0 bytes received; `docker exec ckad-control-plane curl -H "Host: demo.kube.com"
+  http://127.0.0.1:30080` still returns 200.

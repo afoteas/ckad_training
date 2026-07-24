@@ -65,7 +65,14 @@ They allow:
 - automate manifest scanning in CI/CD
 - train teams on migration practices so upgrades stay routine
 
-## Key Takeaways
+## CKAD Tips
+
+- Know the maturity ladder — `alpha` → `beta` → stable (`v1`) — and always set the correct `apiVersion` on a manifest; wrong/removed versions cause apply failures.
+- Discover available versions with `kubectl api-versions` and `kubectl api-resources`, and use `kubectl explain <res> --api-version=<group/version>` to check fields per version.
+- Check for deprecated API usage from the API server with `kubectl get --raw /metrics | grep apiserver_requested_deprecated_apis`.
+- Migration workflow to remember: audit manifests → bump to the current `apiVersion`/fields → test → guard in CI; conversion webhooks are how CRDs serve multiple versions (background, not hands-on exam work).
+
+## Key Takeaway
 
 - detect deprecations early
 - migrate methodically, not reactively

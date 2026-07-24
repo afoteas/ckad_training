@@ -439,3 +439,15 @@ Notes:
 - If you run `minikube delete` and recreate `mini-ckad`, repeat Step 3 (node trust is not preserved).
 - Replace `mini-ckad` with your profile name if different.
 - These steps trust an interception CA locally; only do this on machines where Zscaler is expected.
+
+## CKAD Note
+
+Skaffold and Kaniko (daemonless, in-cluster image builds) are real-world/CI tooling and are **out of scope** for CKAD — the exam never asks you to build container images at all.
+
+- You won't run `skaffold dev -p kaniko`, wire up registries, or debug TLS/Zscaler trust stores on the exam.
+- The one transferable concept is that a build can run as a Pod/Job in the cluster, with the resulting image referenced by a Deployment — but you are only tested on deploying pre-built images.
+- Focus exam prep on `kubectl apply`/`set image`/`rollout` against existing images, not on how those images are produced.
+
+## Key Takeaway
+
+Skaffold + Kaniko enable in-cluster, daemonless image builds with an automatic dev loop, but for CKAD this is background — the exam only cares that you can deploy and roll out existing images with `kubectl`.

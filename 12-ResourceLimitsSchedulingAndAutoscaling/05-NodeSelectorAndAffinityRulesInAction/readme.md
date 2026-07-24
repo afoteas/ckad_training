@@ -67,6 +67,14 @@ If no preferred node exists, Pod still schedules normally on any available node.
 | Use case | Hard constraints (must run on specific hardware) | Soft preferences (nice-to-have placement) |
 | Weights | Not used | 1-100 priority scoring |
 
+## CKAD Tips
+
+- Confirm placement with `kubectl get pod <pod> -o wide` and check the `NODE` column.
+- Label the node **before** applying the Pod — a missing label is the usual cause of a stuck `Pending` Pod.
+- Required affinity with no match stays `Pending`; preferred affinity always schedules somewhere.
+- Use `kubectl describe pod <pod>` Events to see why a Pod didn't land where expected.
+- Preferred rules use `weight` (1–100); the highest matching weight wins.
+
 ## Key Takeaway
 
 Labeling plus selector/affinity rules gives you deterministic workload placement for performance, cost, and compliance goals.

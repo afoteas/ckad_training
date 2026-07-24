@@ -57,3 +57,15 @@ Cleanup:
 ```bash
 kubectl delete -f deployment-with-startup-probes.yaml
 ```
+
+## CKAD Tips
+
+- Learn the debug loop by heart: `kubectl get pods` → `kubectl describe pod <name>` (read `State`, `Reason`, `Events`) → `kubectl logs <name>` → `kubectl get events`.
+- `kubectl logs <pod> --previous` reveals why a container crashed and restarted — essential for diagnosing `CrashLoopBackOff`.
+- Sort events chronologically with `kubectl get events --sort-by=.metadata.creationTimestamp` to build a failure timeline.
+- The `Events` section of `kubectl describe` surfaces the most common exam causes: `ImagePullBackOff`, probe failures, and `FailedScheduling` due to resource/affinity constraints.
+- Add `-c <container>` to `kubectl logs` for multi-container pods, and `-A` / `-n <ns>` when the failing pod is in another namespace.
+
+## Key Takeaway
+
+A disciplined `get → describe → logs → events` sequence is the fastest way to root-cause failing pods, and mastering it is directly tested by CKAD troubleshooting tasks.

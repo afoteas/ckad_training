@@ -73,3 +73,14 @@ After basic pod creation and listing, the same pattern can be extended to:
 - react to watch events
 - build reconciliation logic
 - power internal automation tools
+
+## CKAD Note
+
+- Creating Pods programmatically in Go with `client-go` is **outside CKAD scope** — the exam expects you to create workloads with `kubectl` and YAML, not code.
+- The equivalent examinable skills are imperative creation (`kubectl run nginx --image=nginx`, `kubectl create deployment`) and `kubectl run/create ... --dry-run=client -o yaml` to scaffold manifests fast.
+- Namespaces, labels, and pod fields (`status`, `podIP`, `nodeName`, containers) shown here map to what you inspect via `kubectl get -o wide` / `-o yaml`.
+- Treat the Go program as background for how operators/controllers work; nothing here requires Go on the exam.
+
+## Key Takeaway
+
+Programmatic pod management demonstrates that every Kubernetes action maps to the same API objects you already manage with `kubectl` — for CKAD, reproduce these operations imperatively and with YAML rather than in Go.

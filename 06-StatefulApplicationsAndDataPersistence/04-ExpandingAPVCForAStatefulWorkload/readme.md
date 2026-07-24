@@ -54,3 +54,14 @@ Expected result:
 - capacity increases to target size
 - filesystem grows
 - existing data remains readable
+
+## CKAD Tips
+
+- Resize a PVC in place with `kubectl edit pvc <name>` (or `kubectl patch`), increasing `spec.resources.requests.storage`.
+- Confirm the backing StorageClass has `allowVolumeExpansion: true` before attempting the resize.
+- Validate end-to-end: `kubectl get pvc -w`, `kubectl describe pvc <name>`, and `kubectl exec <pod> -- df -h <mount>`.
+- Data written before the resize must remain intact — expansion never destroys existing files.
+
+## Key Takeaway
+
+Expanding a stateful workload's storage is a live edit to the PVC's requested size; the volume and filesystem grow online while existing data stays intact.

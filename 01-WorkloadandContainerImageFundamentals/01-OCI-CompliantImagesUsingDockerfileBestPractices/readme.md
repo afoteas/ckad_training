@@ -64,3 +64,15 @@ A clear 4-step Dockerfile flow:
 ## Summary
 
 OCI-compliant, security-hardened Dockerfiles produce deterministic, portable images that behave consistently across local development, CI, and Kubernetes runtime environments.
+
+## CKAD Tips
+
+- The "Application Design and Build" domain includes defining, building, and modifying container images — be comfortable with a basic `Dockerfile` and `docker build -t my-app:1.0.0 .`.
+- Always pin image tags (never `latest`) and prefer minimal base images to reduce CVEs and pull time.
+- Use `COPY` (not `ADD`) for local files and add a `.dockerignore` to shrink the build context.
+- Run as a non-root `USER` and inject credentials at runtime via Kubernetes `Secret`s — never bake secrets into image layers.
+- Combine `RUN` steps and order instructions for layer-cache reuse; inspect layers with `docker history my-app:1.0.0`.
+
+## Key Takeaway
+
+OCI-compliant, minimal, non-root Dockerfiles produce portable, deterministic images that behave the same across local development, CI, and Kubernetes.

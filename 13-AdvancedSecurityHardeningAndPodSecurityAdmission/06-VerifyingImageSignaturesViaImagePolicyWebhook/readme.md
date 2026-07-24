@@ -155,6 +155,14 @@ kubectl delete namespace cosign-system
 
 Kubernetes also supports a built-in `ImagePolicyWebhook` admission plugin configured on the API server. The Sigstore **Policy Controller** is the modern, Cosign-native approach shown in this lesson — it uses `ClusterImagePolicy` CRDs instead of a static API server config file.
 
+## CKAD Note
+
+Installing admission webhooks (Sigstore Policy Controller via `helm`, `ClusterImagePolicy` CRDs, or the API-server `ImagePolicyWebhook` plugin) is **beyond CKAD scope** — this is cluster-admin/real-world tooling.
+
+- **Examinable concept:** admission controllers intercept API requests before persistence and can allow, deny, or mutate them. The in-scope, hands-on example of this is Pod Security Admission (chapters 01–02).
+- **Beyond scope (background here):** writing `ValidatingWebhookConfiguration`, deploying the Policy Controller with `helm`, and authoring `ClusterImagePolicy` resources.
+- You will not configure signature-verification webhooks on the exam — focus your admission knowledge on PSA labels and standards.
+
 ## Key Takeaway
 
 Admission webhooks enforce image trust at the cluster gate. Only Cosign-signed images matching your policy are allowed — unsigned or tampered images never reach the scheduler.

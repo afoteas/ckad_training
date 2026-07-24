@@ -100,3 +100,15 @@ Open the Prometheus UI:
 ```bash
 minikube -p mini-ckad service prometheus -n kube-system
 ```
+
+## CKAD Note
+
+Custom application instrumentation — Prometheus client libraries, `/metrics` endpoints, `prometheus.io/*` annotations, and ServiceMonitors — is **beyond CKAD exam scope** and belongs to app-developer/SRE work in the real world.
+
+- In scope instead: knowing that apps should emit signals (logs to stdout/stderr, health via probes) that Kubernetes-native tooling consumes.
+- In scope: `kubectl top` (metrics-server), `kubectl logs`, and probe configuration.
+- You won't write instrumentation code or configure scraping on the exam, though the `kubectl run temp-tester --rm -i --restart=Never` pattern shown here is a handy in-scope way to curl an endpoint from inside the cluster.
+
+## Key Takeaway
+
+Instrumenting apps with Prometheus client libraries and exposing a `/metrics` endpoint is valuable production practice but not CKAD-tested; for the exam, focus on probes, `kubectl logs`, and `kubectl top` as your observability tools.

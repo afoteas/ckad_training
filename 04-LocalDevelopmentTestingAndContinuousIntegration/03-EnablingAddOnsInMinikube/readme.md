@@ -186,6 +186,14 @@ Use the external IP shown for LoadBalancer services.
 - Wrong cluster behavior:
   - verify context before every test: kubectl config current-context
 
+## CKAD Tips
+
+- Ingress **is** examinable: know how to create an `Ingress` with host/path rules and the correct `pathType`, and remember it needs both a running ingress controller and a backing `Service`.
+- Metrics Server powers `kubectl top nodes` / `kubectl top pods` and feeds HPA — metrics take ~30–90s to appear after install, so don't assume failure too early.
+- On kind you usually need the `--kubelet-insecure-tls` arg patched onto `metrics-server`; on minikube it's just `minikube addons enable metrics-server`.
+- Debug routing with `kubectl get ingress` and `kubectl describe ingress`, and confirm the rule's `Service` name/port actually match an existing Service.
+- The addon/manifest install steps are setup only — the exam tests the `Ingress` and `Service` objects you write, not how the controller got installed.
+
 ## Key Takeaway
 
 Ingress and Metrics Server are supported in both minikube and kind.

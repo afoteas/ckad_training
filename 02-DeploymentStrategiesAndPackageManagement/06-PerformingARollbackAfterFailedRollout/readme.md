@@ -80,4 +80,15 @@ kubectl rollout status deploy api-service
 
 Use immediate undo first, then target explicit revision if needed.
 
+## CKAD Tips
+
+- Spot a failed rollout fast: `kubectl rollout status` hangs and pods show `ImagePullBackOff` / `ErrImagePull`.
+- Recover with `kubectl rollout undo deploy <name>`; the rollback itself creates a new revision (history is never deleted).
+- Jump to a specific good revision with `kubectl rollout undo deploy <name> --to-revision=1`.
+- `kubectl describe pod <pod>` events pinpoint the root cause (e.g. an unresolvable image tag).
+- `kubectl rollout status` blocks until the rollout succeeds or fails — use it to confirm recovery after the undo.
+
+## Key Takeaway
+
+When a rollout gets stuck on a bad update (e.g. a non-existent image), `kubectl rollout undo` quickly restores the last working revision, with the failure surfacing as `ImagePullBackOff` in pod events.
 

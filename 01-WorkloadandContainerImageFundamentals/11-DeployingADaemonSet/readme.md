@@ -36,17 +36,17 @@ Each line shows a different hostname (the node name).
 
 Add a `nodeSelector` or `nodeAffinity` in the Pod template to run only on nodes with a given label (e.g. `logging=enabled`).
 
-## CKAD Tips
-
-- DaemonSet has `spec.selector` + template labels — same rules as Deployment.
-- `kubectl get ds` is shorthand for DaemonSet.
-- On exam: if the task says "one Pod on every node", use DaemonSet, not a Deployment with high `replicas`.
-
 ## Cleanup
 
 ```bash
 kubectl delete -f daemonset.yaml
 ```
+
+## CKAD Tips
+
+- DaemonSet has `spec.selector` + template labels — same rules as Deployment.
+- `kubectl get ds` is shorthand for DaemonSet.
+- On exam: if the task says "one Pod on every node", use DaemonSet, not a Deployment with high `replicas`.
 
 ## Key Takeaway
 

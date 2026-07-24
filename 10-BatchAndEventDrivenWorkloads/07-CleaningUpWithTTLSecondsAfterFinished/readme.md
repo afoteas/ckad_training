@@ -99,3 +99,15 @@ spec:
 ```
 
 After ETL completes, keep the Job for 1 day (86400 seconds) for debugging, then auto-delete.
+
+## CKAD Tips
+
+- `ttlSecondsAfterFinished` lives on the Job `spec` and starts counting only once the Job is `Complete` or `Failed` — running Jobs are untouched.
+- `ttlSecondsAfterFinished: 0` deletes the Job immediately on finish; leaving it unset means the Job persists until you delete it.
+- Deletion cascades: Job → Pods → their logs, so `kubectl logs` fails afterward — capture logs first (`kubectl logs <pod> > file.log`) or ship them to central logging.
+- It applies to both standalone Jobs and the Jobs a CronJob creates, complementing `successfulJobsHistoryLimit`/`failedJobsHistoryLimit`.
+- Feature is GA since Kubernetes 1.21, so assume it's available in exam clusters.
+
+## Key Takeaway
+
+`ttlSecondsAfterFinished` lets the TTL controller auto-delete finished Jobs (and their Pods/logs) after a set time, keeping the cluster and etcd clean — just export any logs you need before they're garbage-collected.

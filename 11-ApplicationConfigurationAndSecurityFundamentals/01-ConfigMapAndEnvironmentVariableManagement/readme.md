@@ -103,6 +103,15 @@ In this example, both values are non-sensitive application settings and can be i
 - Manage ConfigMap changes through the same GitOps or review workflow used for application changes.
 - Use RBAC to limit who can read or modify ConfigMaps.
 
+## CKAD Tips
+
+- Create quickly with `kubectl create configmap app-config --from-literal=APP_MODE=production --from-literal=APP_PORT=8080`; use `--from-file` or `--from-env-file` for file-based data.
+- Inject a single key with `env.valueFrom.configMapKeyRef`; inject every key at once with `envFrom.configMapRef`.
+- Mounted ConfigMap volumes refresh automatically (~60s), but env vars are set at container start and only change after a Pod restart (`kubectl rollout restart`).
+- Add `--dry-run=client -o yaml` to any `kubectl create configmap` to scaffold a manifest fast.
+- A missing key in `configMapKeyRef` blocks the Pod from starting unless you set `optional: true`.
+- ConfigMaps are namespaced — keep them in the same namespace as the consuming Pods.
+
 ## Key Takeaway
 
 ConfigMaps provide flexible, reusable, non-sensitive configuration management for Kubernetes workloads. They are one of the main tools that make container images portable and environment-agnostic.

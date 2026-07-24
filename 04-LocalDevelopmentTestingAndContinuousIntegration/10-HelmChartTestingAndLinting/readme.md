@@ -107,3 +107,15 @@ Helm chart quality is best protected by combining:
 3. CT for scalable automation in CI/CD
 
 This approach reduces release risk and prevents broken deployments from reaching production.
+
+## CKAD Note
+
+CKAD covers using Helm to **deploy existing packages**, but chart authoring, `helm lint`, `helm test`, and the Chart Testing (`ct`) tool shown here are beyond exam scope.
+
+- Examinable: `helm install`, `helm upgrade --install`, `helm list`, `helm uninstall`, and overriding values with `--set`/`-f values.yaml`.
+- Not examinable: `helm lint --strict`, `helm test`, the `ct` tool, and multi-version chart matrices — these are chart-maintainer/CI concerns.
+- If Helm appears on the exam, focus on installing/upgrading a chart and overriding values, not validating or authoring one.
+
+## Key Takeaway
+
+Combining `helm lint`, `helm test`, and `ct` protects chart quality in CI/CD, but for CKAD you only need to install and upgrade existing charts with value overrides — chart testing itself is real-world background.

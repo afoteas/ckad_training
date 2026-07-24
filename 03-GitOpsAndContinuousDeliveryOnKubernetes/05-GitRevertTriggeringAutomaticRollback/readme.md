@@ -87,3 +87,15 @@ argocd repo add https://github.com/argoproj/argocd-example-apps
 - Prefer revert over force-push to preserve traceability.
 - Add incident reference in revert commit message.
 - Use protected branches to avoid direct emergency edits.
+
+## CKAD Note
+
+Git-driven rollback (revert commit → controller reconciles) and the Argo CD `Application` sync operations here are **not** examinable — that is GitOps tooling and Git workflow, not core Kubernetes.
+
+- Several kubectl commands used in this lab ARE examinable and worth practicing: `kubectl set image deployment/<name> <container>=<image>` to trigger a change, and `kubectl wait --for=condition=ready pod -l <selector> --timeout=...` to gate on readiness.
+- The exam-native way to roll back a workload is `kubectl rollout undo deploy/<name>` (optionally `--to-revision=N`), not a Git revert.
+- Recognize failure signals like `ErrImagePull`/`ImagePullBackOff` via `kubectl get pods` and `kubectl describe pod` — diagnosing these is squarely in-scope.
+
+## Key Takeaway
+
+In GitOps, rollback is a Git revert that controllers reconcile automatically; on CKAD you achieve the same recovery imperatively with `kubectl rollout undo` (and `kubectl set image`/`kubectl wait`) while reading pod status to confirm the fix.

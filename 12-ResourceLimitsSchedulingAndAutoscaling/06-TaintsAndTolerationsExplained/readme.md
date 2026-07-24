@@ -280,6 +280,14 @@ In production, special nodes often use both:
 - Isolate critical or system-level services.
 - Enforce environment boundaries in shared clusters.
 
+## CKAD Tips
+
+- Taint syntax: `kubectl taint nodes <node> key=value:Effect`; remove by appending a dash: `kubectl taint nodes <node> key=value:Effect-`.
+- Only three effects exist: `NoSchedule`, `PreferNoSchedule`, and `NoExecute` (the last also **evicts** running non-tolerating Pods).
+- Toleration `operator` is only `Equal` or `Exists` — far narrower than affinity's operator set.
+- Taints repel Pods (set on nodes); affinity/selectors attract them — a toleration only *permits* placement, it does not *force* it.
+- With `NoExecute`, `tolerationSeconds` delays eviction; omit it and a tolerating Pod stays indefinitely.
+
 ## Key Takeaway
 
 Taints define node restrictions; tolerations grant workload exceptions.

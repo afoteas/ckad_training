@@ -45,3 +45,15 @@ Expected result: successful response confirms app works and service mapping is t
 - service targets port 80
 - container actually listens on 8080
 - fix by updating service/targetPort mapping and reapplying manifests
+
+## CKAD Tips
+
+- Isolate the layer by forwarding to each independently: `kubectl port-forward svc/<name> ...` vs `kubectl port-forward pod/<name> ...` — if the pod works but the service doesn't, the Service mapping is broken.
+- The usual culprit is a `targetPort` (Service) that doesn't match the container's `containerPort`; `port` is what the Service listens on, `targetPort` is where it forwards.
+- Read the actual container port fast with `kubectl get pod <pod> -o jsonpath='{.spec.containers[0].ports[0].containerPort}'`.
+- Confirm the Service selected any pods with `kubectl get endpoints <service>` — an empty endpoints list means a label/selector mismatch, not a port issue.
+- Pair `port-forward` with `curl localhost:<port>` to validate responses incrementally as you move from service to pod.
+
+## Key Takeaway
+
+When a service path is broken, port-forward to the pod and to the service separately: a working pod plus a failing service points to a `port`/`targetPort` (or selector) mismatch you can fix in the Service manifest.

@@ -99,3 +99,15 @@ kubectl delete -f app-green.yaml
 ### Zero-Downtime Principle
 
 Service cutover is network-routing based, not in-place replacement, which is why this method avoids deployment interruption during switch.
+
+## CKAD Tips
+
+- The entire cutover is one label change on the Service selector (`version: blue` → `version: green`) and it takes effect instantly.
+- Prefer `kubectl patch svc app-gateway -p '{"spec":{"selector":{"version":"green"}}}'` over `kubectl edit` for speed and scriptability.
+- Use `kubectl get pods --show-labels` to confirm exactly which pods a selector will match before switching.
+- Smoke-test in-cluster fast: `kubectl run -it --rm curl --image=curlimages/curl -- curl http://app-gateway`.
+- Leave `app-blue` running after cutover so rollback is just another selector flip.
+
+## Key Takeaway
+
+A single Service selector edit atomically shifts all traffic between two running Deployments, giving instant, zero-downtime cutover and an equally instant rollback path.

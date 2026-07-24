@@ -140,5 +140,12 @@ Deleting the JobSet removes its child Jobs, pods, and the auto-created Service.
 ## CKAD Note
 
 Plain `Job` and `CronJob` are the exam-relevant, always-available primitives. JobSet is an advanced add-on (extra CRDs) — useful to understand conceptually, but not part of the default cluster.
-</content>
-</invoke>
+
+- **In scope**: authoring `Job` (including `completionMode: Indexed`, `parallelism`, `completions`) and `CronJob`, plus headless Services for stable DNS.
+- **Background only**: the `jobset.x-k8s.io` API (`replicatedJobs`, `successPolicy`, startup ordering) and its controller/CRD installation.
+- Recognize that JobSet automates leader/worker coordination and networking that you'd otherwise assemble manually from Indexed Jobs and a headless Service.
+
+## Key Takeaway
+
+A JobSet orchestrates a group of Jobs (e.g. leader + workers) as a single unit with cross-job success/failure policies, automatic headless Service networking, and startup ordering — ideal for distributed training/HPC, but it's an add-on CRD beyond CKAD scope, where plain `Job` and `CronJob` are the primitives.
+

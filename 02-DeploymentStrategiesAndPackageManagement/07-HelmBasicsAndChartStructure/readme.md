@@ -144,3 +144,15 @@ helm status myrelease -n myns
 ### Operational Value
 
 Helm provides repeatable packaging, versioned releases, and native rollback history, making multi-environment Kubernetes operations easier to standardize.
+
+## CKAD Tips
+
+- Helm is in the CKAD curriculum — be fluent with `helm install`, `helm upgrade --install`, `helm rollback`, `helm uninstall`, and `helm list -A`.
+- Render before you apply: `helm template <release> <chart>` shows the final manifests, and `helm lint <chart>` catches chart errors early.
+- Override values with `-f values.yaml` and `--set key=value`; remember precedence (chart defaults < parent < `-f` < `--set`).
+- Know the vocabulary cold: chart vs release vs repository vs values.
+- After a bad upgrade, `helm history <release>` then `helm rollback <release> <rev>` restores a known-good release.
+
+## Key Takeaway
+
+Helm packages Kubernetes manifests as versioned, parameterized charts, giving you repeatable installs, upgrades, and one-command rollbacks managed as releases.

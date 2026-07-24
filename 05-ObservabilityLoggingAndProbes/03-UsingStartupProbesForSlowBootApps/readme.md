@@ -60,3 +60,15 @@ kubectl get pods -l app=slow-start-app -w
 kubectl describe pod -l app=slow-start-app
 kubectl logs -l app=slow-start-app --tail=100
 ```
+
+## CKAD Tips
+
+- A `startupProbe` disables the liveness and readiness probes until it succeeds, so slow-booting apps avoid premature restarts.
+- Size the startup budget with `periodSeconds * failureThreshold` (here `10 * 5 = 50s`) — it must exceed the app's worst-case boot time.
+- The classic symptom a startup probe fixes is a healthy app stuck in `CrashLoopBackOff` because an aggressive `livenessProbe` kills it mid-boot.
+- `exec` handlers run inside the container (e.g. `cat /dev/null`); confirm the binary exists in the image or the probe fails instantly.
+- Inspect the ordering in `kubectl describe pod` — you'll see startup probe events precede liveness/readiness activity.
+
+## Key Takeaway
+
+Startup probes give slow-booting containers a protected startup window, letting you keep liveness and readiness checks aggressive without triggering false-positive restarts.

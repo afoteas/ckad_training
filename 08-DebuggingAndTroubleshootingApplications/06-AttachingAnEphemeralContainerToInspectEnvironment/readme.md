@@ -65,3 +65,15 @@ Rule of thumb:
 
 - use sidecar when you want persistent helper/debug capability
 - use ephemeral container for fast, temporary diagnostics on live pods
+
+## CKAD Tips
+
+- Exec into a specific container by name: `kubectl exec -it <pod> -c <container> -- sh` — the `-c` flag is required for multi-container pods.
+- List container names quickly with `kubectl get pod <pod> -o jsonpath='{.spec.containers[*].name}'` when you're unsure which `-c` value to use.
+- Containers in the same pod share the network namespace (talk over `localhost`) and mounted volumes, but process visibility stays container-scoped unless `shareProcessNamespace` is set.
+- If a container isn't in the pod spec, you can't `exec` into it — inject one with `kubectl debug -it <pod> --image=busybox --target=<container> -- sh`.
+- Inside a debug shell, `env`, `ls -la /`, `wget -qO-`, and `ps aux` cover most quick environment inspections.
+
+## Key Takeaway
+
+Sidecar containers (declared in the spec, always-on) and ephemeral debug containers (injected on demand) both leverage shared pod namespaces to inspect a running app — choose sidecars for persistent helpers and ephemeral containers for one-off live diagnostics.

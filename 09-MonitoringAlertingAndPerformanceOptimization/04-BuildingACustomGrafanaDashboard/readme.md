@@ -57,3 +57,14 @@ Use the time picker (top right) to select **Last 30 minutes** or **Last 15 minut
 - it can take 1–2 minutes after deployment for Prometheus to start scraping a new target
 - the panel will show a flat or empty chart until scrape data is available
 - panel types available: graph (time series), gauge, single stat, heatmap — choose based on what the metric represents
+
+## CKAD Note
+
+Building Grafana dashboards is real-world tooling and is **not** on the CKAD exam. The one detail worth carrying forward is how Prometheus discovers scrape targets via pod annotations.
+
+- The `prometheus.io/scrape: "true"` and `prometheus.io/port` annotations are background context — you won't be asked to configure scraping, but understanding pod annotations generally is useful.
+- For exam-relevant metric checks, deploy with `kubectl apply -f` and inspect the result with `kubectl get pods -l app=demo-app` and `kubectl top pod`, not Grafana panels.
+
+## Key Takeaway
+
+Custom Grafana dashboards visualize application metrics like latency and error rate from Prometheus, but for CKAD the reusable skills are deploying with `kubectl apply` and checking workloads with `kubectl get`/`kubectl top` — dashboard building itself is out of scope.

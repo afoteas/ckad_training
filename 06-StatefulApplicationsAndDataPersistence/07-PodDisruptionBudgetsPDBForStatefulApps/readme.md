@@ -48,3 +48,13 @@ With 3 MySQL replicas, this prevents drain/eviction from dropping below 2 availa
 - combine with higher replica counts for redundancy
 - remember that PDBs do not cover involuntary disruptions
 - use monitoring to confirm pods remain available
+
+## CKAD Note
+
+- PodDisruptionBudgets are primarily a cluster-operations/CKA topic and are rarely required on CKAD — spend exam prep on the workloads PDBs protect (Deployments, StatefulSets) and their health probes.
+- If PDBs do appear, remember the two mutually exclusive fields — `minAvailable` and `maxUnavailable` — plus a `selector`, and that PDBs only guard *voluntary* disruptions (drains, evictions), never node/hardware failures.
+- Check status with `kubectl get pdb` and `kubectl describe pdb <name>` (watch `ALLOWED DISRUPTIONS`).
+
+## Key Takeaway
+
+A PDB caps how many matching pods can be voluntarily evicted at once (via `minAvailable`/`maxUnavailable`), protecting stateful availability during drains and upgrades — useful background that sits closer to CKA than core CKAD.

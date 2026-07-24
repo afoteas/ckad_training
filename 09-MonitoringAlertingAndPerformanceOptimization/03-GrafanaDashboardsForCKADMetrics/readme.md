@@ -57,3 +57,14 @@ kube_pod_container_status_restarts_total{namespace="default"}
 - keep custom dashboards simple: one or two critical metrics per panel
 - export and share the same core dashboards across dev, staging, and production for a consistent source of truth
 - use alerting in production but focus on diagnosis and repair during exam scenarios
+
+## CKAD Note
+
+Grafana dashboards and PromQL are real-world observability skills but are **not** tested on CKAD — despite the chapter name, you won't write `rate(container_cpu_usage_seconds_total[5m])` on the exam.
+
+- For exam metrics, use `kubectl top pod` / `kubectl top node` (see `07-...`) to get the same CPU/memory snapshot Grafana visualizes.
+- Diagnose with `kubectl describe`, `kubectl logs`, and `kubectl get events` rather than dashboards; treat PromQL as background knowledge only.
+
+## Key Takeaway
+
+Grafana turns Prometheus time series into visual dashboards layered from cluster down to pod — invaluable in production, but for CKAD the equivalent insight comes from `kubectl top` and core inspection commands, not PromQL panels.

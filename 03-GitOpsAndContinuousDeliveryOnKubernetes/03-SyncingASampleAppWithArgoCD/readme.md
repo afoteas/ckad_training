@@ -113,3 +113,15 @@ argocd app list
 - Keep credentials out of shell history when using private repos.
 - If your default branch is not `main`, replace `--revision main` with the correct branch.
 - If your organization uses TLS interception (for example Zscaler), add the corporate root CA to Argo CD before adding HTTPS repos.
+
+## CKAD Note
+
+Argo CD `Application` objects, auto-sync/prune/self-heal policies, and the `argocd app` CLI are **not** examinable — this is GitOps tooling, not core Kubernetes.
+
+- The examinable equivalent of a "synced app" is deploying manifests yourself with `kubectl apply -f <dir>` (or `-k` for Kustomize) and confirming health with `kubectl get`, `kubectl rollout status`, and `kubectl describe`.
+- "Prune obsolete resources" maps to the exam concept of `kubectl delete`/`kubectl apply --prune`; "self-heal drift" is what a controller does automatically — on the exam you reconcile manually.
+- Understand the mental model (source repo + path + destination namespace) but expect to be tested on the underlying resources (Deployments, Services, Ingress), not on Argo CD Applications.
+
+## Key Takeaway
+
+An Argo CD Application binds a repo path to a destination cluster/namespace and continuously syncs it; for CKAD you should be able to deploy and verify those same workloads directly with `kubectl apply` and `kubectl get`/`rollout status` rather than through Argo CD.

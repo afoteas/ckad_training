@@ -108,6 +108,13 @@ Even if two manifest files are different on disk, they must refer to the same Co
 - Use clear annotations to declare reloader behavior.
 - Validate restarts in lower environments before production rollout.
 
+## CKAD Note
+
+- Third-party reloader operators (e.g. Stakater Reloader) and Helm-based installs are **real-world tooling, not CKAD exam material**.
+- What IS in scope: knowing that mounted ConfigMap/Secret volumes refresh automatically (~60s) while env-var values do not, so a change usually requires a restart to take effect.
+- The CKAD-friendly way to force a refresh is `kubectl rollout restart deployment/<name>` — remember this instead of the operator annotation.
+- Understand the reload concept, but you won't install Helm charts or operators during the exam.
+
 ## Key Takeaway
 
 Live config reload bridges the gap between configuration updates and application process refresh. It ensures that changes to ConfigMaps and Secrets are actually reflected in running workloads without requiring manual Pod deletion each time.

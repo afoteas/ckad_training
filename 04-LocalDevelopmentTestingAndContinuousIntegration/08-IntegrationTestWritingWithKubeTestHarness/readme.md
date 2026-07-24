@@ -110,3 +110,15 @@ Use these tests especially for:
 ## Summary
 
 Kubernetes integration tests with a kube test harness help you catch real cluster issues early, improve deployment safety, and reduce costly production failures.
+
+## CKAD Note
+
+Writing Go integration tests with a kube test harness is developer/SRE tooling and is **not** on the CKAD exam.
+
+- You won't author Go tests or use `NewHarness`/`ApplyFile`/`WaitForPodsRunning` on the exam.
+- The examinable equivalent is manually verifying wiring and rollout: `kubectl rollout status`, `kubectl get pods`, `kubectl describe`, and checking that Deployment/Service label selectors actually match.
+- Understand *why* these checks matter (selector mismatches, readiness/rollout problems) — the reasoning transfers even though the harness does not.
+
+## Key Takeaway
+
+A kube test harness spins up an ephemeral cluster, applies manifests, asserts state, and tears down automatically so integration bugs surface early — but for CKAD you reproduce those same checks by hand with `kubectl`.

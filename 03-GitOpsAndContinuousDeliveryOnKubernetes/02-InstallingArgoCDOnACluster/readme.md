@@ -80,3 +80,15 @@ kubectl delete secret argocd-initial-admin-secret -n argocd
 - Avoid hardcoding the admin password in notes or shell history when possible.
 - Back up Argo CD settings and projects.
 - Use projects to isolate environments and repo access.
+
+## CKAD Note
+
+Installing and operating Argo CD is **not** on the CKAD exam. Argo CD is real-world GitOps tooling, and the `argocd` CLI, `Application` CRD, and initial-admin-secret rotation are outside exam scope.
+
+- What IS examinable here: installing charts with Helm (`helm repo add`, `helm repo update`, `helm install --values`) and working with namespaces (`kubectl create namespace`).
+- Reading Secrets is in-scope: `kubectl get secret ... -o jsonpath="{.data.password}" | base64 -d` is a genuinely useful CKAD skill.
+- `kubectl port-forward service/... 8080:80` (local access + target-port mapping) is examinable and worth memorizing.
+
+## Key Takeaway
+
+This section installs Argo CD via Helm and logs in with the CLI; for CKAD the transferable skills are Helm chart installs with a custom values file, namespace creation, decoding Secrets, and `kubectl port-forward` — not Argo CD itself.

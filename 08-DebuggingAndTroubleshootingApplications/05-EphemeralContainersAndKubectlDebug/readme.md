@@ -44,3 +44,15 @@ What it does:
 - ephemeral containers do not restart automatically
 - support depends on cluster Kubernetes version/features
 - debug images can expose sensitive runtime data, so use strict RBAC
+
+## CKAD Tips
+
+- Core command to memorize: `kubectl debug <pod> -it --image=busybox --target=<container>` injects an interactive debug container into a running pod without a redeploy.
+- Use `--target=<container>` to share that container's process namespace; without it you can't see the target's processes.
+- Reach for `kubectl debug` (not `kubectl exec`) when a pod is crash-looping or the app image has no shell/tools.
+- Pick the image for the job: `busybox` for quick checks, `nicolaka/netshoot` for network/DNS (`dig`, `tcpdump`, `nc`), `curlimages/curl` for HTTP endpoint tests.
+- Remember ephemeral containers can't be added to a pod spec and won't restart — they're strictly for one-off live diagnosis.
+
+## Key Takeaway
+
+Ephemeral containers via `kubectl debug` let you attach troubleshooting tooling to a live (even crashing) pod without rebuilding or redeploying it, preserving the failing runtime for inspection.

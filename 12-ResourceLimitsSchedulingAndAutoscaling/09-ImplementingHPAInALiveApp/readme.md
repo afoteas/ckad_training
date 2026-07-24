@@ -57,6 +57,14 @@ kubectl delete -f hpa-config.yaml
 kubectl delete -f hpa-app.yaml
 ```
 
+## CKAD Tips
+
+- Create an HPA imperatively: `kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10`.
+- Metrics Server is required — verify with `kubectl top pods` before expecting any scaling.
+- Watch scaling live with `kubectl get hpa -w`; `<unknown>` under `TARGETS` means missing metrics or missing requests.
+- The target Deployment **must** define CPU requests, or utilization-based HPA won't scale.
+- Remove the `--rm` load-generator Pod when done so replicas scale back down.
+
 ## Key Takeaway
 
 HPA uses real-time metrics and request-based baselines to scale workloads automatically as demand changes.

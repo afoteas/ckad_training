@@ -50,3 +50,15 @@ kubectl get jobs -w
 - set history limits to prune old jobs
 - avoid overlap with `concurrencyPolicy`
 - monitor failures via logs and alerts
+
+## CKAD Tips
+
+- Generate quickly: `kubectl create job <name> --image=<img> -- <cmd>` and `kubectl create cronjob <name> --image=<img> --schedule="*/1 * * * *" -- <cmd>`.
+- Append `--dry-run=client -o yaml` to scaffold a manifest you can edit before applying.
+- Know the Job fields: `completions`, `parallelism`, `backoffLimit`, and `activeDeadlineSeconds`.
+- For CronJobs remember `schedule`, `concurrencyPolicy` (`Allow`/`Forbid`/`Replace`), `startingDeadlineSeconds`, and the history limits.
+- Trigger a Job immediately from a CronJob with `kubectl create job --from=cronjob/<name> <job-name>`; check output via `kubectl logs job/<name>`.
+
+## Key Takeaway
+
+Jobs run pods to completion with retry and parallelism controls, while CronJobs schedule Jobs on a cron expression; for the exam, master the imperative generators and the completion/retry fields.

@@ -106,6 +106,15 @@ Run `echo -n "base64-value" | base64 --decode` to decode a base64-encoded value 
 - Remove unused or stale secrets.
 - Enable encryption at rest for stronger protection in etcd.
 
+## CKAD Tips
+
+- Create imperatively with `kubectl create secret generic db-secret --from-literal=username=admin --from-literal=password=s3cr3t` — kubectl base64-encodes the values for you.
+- Use `data` for base64-encoded values or `stringData` for plaintext that Kubernetes encodes at apply time.
+- Consume via `envFrom.secretRef` / `env.valueFrom.secretKeyRef`, or mount as a read-only volume (the preferred, safer pattern).
+- Special types have shortcuts: `kubectl create secret tls my-tls --cert=tls.crt --key=tls.key` and `kubectl create secret docker-registry`.
+- Decode a value to verify: `kubectl get secret db-secret -o jsonpath='{.data.password}' | base64 -d`.
+- Remember base64 is encoding, not encryption — Secrets are only obscured in etcd by default.
+
 ## Key Takeaway
 
 Secrets are a critical part of Kubernetes security. They provide the standard mechanism for safely distributing confidential values to running workloads while supporting least-privilege access and operational control.

@@ -56,3 +56,14 @@ Multicontainer Pods improve modularity, but increase observability and debugging
 ## Summary
 
 Sidecar, init, and adapter patterns are foundational Kubernetes design tools for building modular, resilient application Pods while preserving shared runtime context where required.
+
+## CKAD Tips
+
+- Know the three patterns cold: sidecar (runs the whole lifecycle), init container (runs to completion before the app), and adapter/ambassador (translation or proxy).
+- Init containers go under `spec.initContainers` and must each succeed before app containers start.
+- Containers in a Pod share the network namespace (same IP / `localhost`) and can share volumes — the basis for these patterns.
+- Target a specific container with `kubectl logs <pod> -c <container>` and `kubectl exec <pod> -c <container> -- ...`.
+
+## Key Takeaway
+
+Sidecar, init, and adapter patterns let you compose tightly-coupled helpers around a main application in one Pod while keeping concerns separate.

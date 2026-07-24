@@ -69,7 +69,15 @@ Why it helps:
 - clearer field ownership across teams and automation
 - especially useful for GitOps and multi-team environments
 
-## Key Takeaways
+## CKAD Tips
+
+- JSONPath and `kubectl patch` are directly examinable — practice `kubectl get <res> -o jsonpath='{.spec.field}'` until it's muscle memory.
+- Use `{range .items[*]}...{end}` with `{"\t"}` and `{"\n"}` to build custom table-style output across a list.
+- `kubectl patch <res> <name> -p '{"spec":{"replicas":5}}'` defaults to a strategic merge patch; add `--type=json` for JSON Patch (`op`/`path`/`value`) and `--type=merge` for a plain merge.
+- `kubectl explain <res>.spec --recursive` helps you find the exact field path before writing JSONPath.
+- Remember `kubectl apply --server-side` for shared-ownership scenarios, but plain `kubectl patch`/`edit` is the quickest fix under exam time pressure.
+
+## Key Takeaway
 
 - use JSONPath when you need exact fields, not full object output
 - use patch for quick surgical changes during incidents or testing

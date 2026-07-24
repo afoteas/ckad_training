@@ -110,3 +110,15 @@ kubectl delete -f indexed-chunk-processor-job.yaml
 | Pod uniqueness | All identical | Each has unique `JOB_COMPLETION_INDEX` |
 | Success tracking | Total count | Per-index tracking |
 | Use case | Generic parallelism | Partitioned workloads |
+
+## CKAD Tips
+
+- `parallelism` caps how many pods run at once; `completions` is how many must succeed — set both for fixed-completion parallel Jobs.
+- Indexed Jobs require `completionMode: Indexed` AND a `completions` value; each pod gets its index via the `JOB_COMPLETION_INDEX` env var and the label `batch.kubernetes.io/job-completion-index`.
+- Indexed Jobs retry only the failed index, not the whole batch — no external queue needed for partitioned work.
+- Tail every pod at once with `kubectl logs -f -l job-name=<job> --all-containers=true --max-log-requests=20`.
+- Find a pod's index quickly with `kubectl get pods -l job-name=<job> --show-labels`.
+
+## Key Takeaway
+
+Fixed-completion parallel Jobs run identical pods until a total success count is met, while Indexed Jobs give each pod a unique `JOB_COMPLETION_INDEX` for deterministic, per-index work distribution without an external coordinator.

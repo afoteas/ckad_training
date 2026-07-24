@@ -52,7 +52,14 @@ The transcript uses a database-style example where the operator can:
 - can add operational complexity if poorly implemented
 - needs careful testing before production use
 
-## Key Takeaways
+## CKAD Note
+
+- Building operators and writing reconcile/controller logic (controller-runtime, watches) is **beyond CKAD scope** — you won't author controllers on the exam.
+- What's worth knowing conceptually is the pattern: a CRD declares desired state and a controller continuously reconciles actual → desired, the same control-loop idea behind built-in controllers like Deployments.
+- In-scope, examinable adjacent skills are CRD basics (`kubectl get crds`, `kubectl api-resources`) and consuming operator-provided custom resources with `kubectl apply`.
+- Focus your exam prep on managing workloads declaratively, not on implementing operators.
+
+## Key Takeaway
 
 - operators combine CRDs with reconciliation logic
 - they are most valuable for complex lifecycle management

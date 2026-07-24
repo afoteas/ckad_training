@@ -151,6 +151,14 @@ kubectl delete -f monitoring-viewer-clusterrole.yaml
 kubectl delete -f custom-clusterroles.yaml
 ```
 
+## CKAD Note
+
+This lesson mixes exam-relevant RBAC basics with beyond-scope aggregation tooling.
+
+- **Examinable:** creating a `ServiceAccount`, binding a role with `RoleBinding`, and verifying access with `kubectl auth can-i get <resource> --as=system:serviceaccount:<ns>:<sa>`.
+- **Beyond scope (recognize the pattern):** building an aggregating ClusterRole via `aggregationRule` + label selectors, where `rules: []` is populated automatically by the controller.
+- For the exam, prioritize plain `Role`/`ClusterRole` + `RoleBinding` for a scoped ServiceAccount; treat aggregation as real-world convenience, not a required skill.
+
 ## Key Takeaway
 
 Aggregated roles keep RBAC modular — add new contributing ClusterRoles with a label and the aggregated role updates automatically. Scoped ServiceAccounts limit blast radius by granting only the composed permissions a workload needs.

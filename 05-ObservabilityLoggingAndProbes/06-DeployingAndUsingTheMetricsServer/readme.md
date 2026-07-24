@@ -40,3 +40,14 @@ kubectl top pods -A
 
 - metrics-server collects usage from kubelets and exposes Metrics API.
 - required for HPA and day-to-day resource troubleshooting.
+
+## CKAD Tips
+
+- `kubectl top nodes` and `kubectl top pods` (add `-A`, `-n <ns>`, or `--containers`) are the exam-relevant commands — they only work once metrics-server (or the Minikube addon) is running.
+- If `kubectl top` returns `error: Metrics API not available`, metrics-server isn't ready yet; verify with `kubectl get deployment metrics-server -n kube-system` and `kubectl get apiservices | grep metrics.k8s.io`.
+- Metrics feed the Horizontal Pod Autoscaler, so `kubectl autoscale` and CPU-based HPA depend on this component being installed.
+- Installing/patching metrics-server (e.g. `--kubelet-insecure-tls` on dev clusters) is real-world setup; on the exam the cluster is typically pre-provisioned, so focus on *using* `kubectl top`.
+
+## Key Takeaway
+
+metrics-server exposes live CPU/memory usage through the Metrics API, powering both `kubectl top` for troubleshooting and the HPA for autoscaling — know the `kubectl top` commands and how to confirm the API is available.

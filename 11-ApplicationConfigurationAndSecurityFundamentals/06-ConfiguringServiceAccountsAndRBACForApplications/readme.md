@@ -93,6 +93,14 @@ kubectl delete -f service-account.yaml
 - Separate identities per application or per permission boundary.
 - Keep RBAC resources under version control.
 
+## CKAD Tips
+
+- Imperative fast path: `kubectl create serviceaccount pod-reader`, `kubectl create role pod-reader --verb=get,list,watch --resource=pods`, then `kubectl create rolebinding pod-reader-binding --role=pod-reader --serviceaccount=default:pod-reader`.
+- The Deployment/Pod must set `spec.serviceAccountName`; without it the namespace `default` SA is used and your RBAC has no effect.
+- Role + RoleBinding are namespaced; use ClusterRole + ClusterRoleBinding for cluster-scoped resources (nodes, PVs) or cluster-wide access.
+- Bind a shared ClusterRole into a single namespace with a RoleBinding (`--clusterrole` + `--serviceaccount`).
+- Confirm results with `kubectl auth can-i <verb> <resource> --as=system:serviceaccount:<ns>:<sa>`.
+
 ## Key Takeaway
 
 RBAC for applications is built from three parts: identity, permissions, and binding. When a Deployment references a custom ServiceAccount with a narrowly scoped Role, the workload follows the principle of least privilege and becomes much safer to operate.

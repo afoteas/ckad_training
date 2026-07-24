@@ -111,6 +111,14 @@ rules:
 | Avoid role sprawl | Group related permissions and reuse aggregated roles |
 | Regularly review ClusterRoles | Remove unused roles; maintain least privilege |
 
+## CKAD Note
+
+Core RBAC is fully examinable, but the two headline topics here — **ClusterRole aggregation** and **impersonation** — lean beyond typical CKAD scope.
+
+- **Examinable:** creating and binding `Role`/`ClusterRole` with `RoleBinding`/`ClusterRoleBinding`, granting permissions to ServiceAccounts, and checking access with `kubectl auth can-i`.
+- **Beyond scope (know it exists):** `aggregationRule` with `clusterRoleSelectors`/`matchLabels` that auto-merges ClusterRoles, and the `impersonate` verb.
+- Impersonation flags (`kubectl --as=<user>`, `--as=system:serviceaccount:<ns>:<sa>`, `--as-group=<group>`) are handy for **testing** what a subject can do — pair them with `kubectl auth can-i` even though impersonation setup itself is background.
+
 ## Key Takeaway
 
 Aggregation keeps RBAC modular and scalable; impersonation enables safe permission testing without sharing credentials. Both are essential for managing access in large Kubernetes clusters.

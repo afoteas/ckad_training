@@ -66,7 +66,14 @@ for _, pod := range pods.Items {
 - write dashboards or internal platform tools
 - build the foundations of operators and custom controllers
 
-## Key Takeaways
+## CKAD Note
+
+- Writing Go with `client-go`, typed clientsets, and building controllers is **beyond CKAD scope** — treat this as background for understanding how tooling talks to the API.
+- What IS examinable is the API model this exposes: API groups/versions (`kubectl api-resources`, `kubectl api-versions`), and auth building blocks like kubeconfig contexts, ServiceAccounts, and RBAC.
+- On the exam you interact with the API through `kubectl` and `kubectl proxy`/`kubectl get --raw`, not Go code.
+- Know that `kubectl` is a client of the same REST API — useful mental model when debugging permissions or resource paths.
+
+## Key Takeaway
 
 - kubectl is built on the Kubernetes API, not separate from it
 - client-go gives you strongly typed access instead of raw REST calls

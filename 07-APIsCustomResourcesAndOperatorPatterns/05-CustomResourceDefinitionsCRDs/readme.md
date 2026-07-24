@@ -77,7 +77,14 @@ This helps validate custom resources before they are persisted.
 - observability platforms that add custom metrics resources
 - CI/CD systems that expose pipelines or rollout abstractions
 
-## Key Takeaways
+## CKAD Tips
+
+- CRD basics are examinable: know that a `CustomResourceDefinition` (`apiextensions.k8s.io/v1`) registers a new `kind` under a `group`/`version` with a `scope` of `Namespaced` or `Cluster`.
+- After applying, discover the new type with `kubectl get crds`, `kubectl api-resources`, and inspect it via `kubectl describe crd databases.mycompany.com`.
+- Understand `served`, `storage`, `plural`/`singular`/`kind` names, and that the OpenAPI `schema` validates custom resources before they persist.
+- You interact with custom resources exactly like native ones: `kubectl get/apply/describe <plural>` — no controller is needed just to store them.
+
+## Key Takeaway
 
 - CRDs let you extend Kubernetes using its native API model
 - schema and versioning matter from the start

@@ -57,3 +57,15 @@ kubectl exec web-0 -- cat /usr/share/nginx/html/test.txt
 ```
 
 If the text is still present, storage persisted independently of pod lifecycle.
+
+## CKAD Tips
+
+- `volumeClaimTemplates` auto-creates one PVC per pod named `<template>-<statefulset>-<ordinal>` (e.g. `www-web-0`); these PVCs are **not** deleted with the StatefulSet.
+- The StatefulSet's `serviceName` must point at a headless Service (`clusterIP: None`) so each pod gets stable DNS.
+- Inspect the generated storage with `kubectl get pvc` and `kubectl get pv`, and confirm every PVC is `Bound`.
+- Prove persistence by writing data, running `kubectl delete pod <name>`, and re-reading after the same-named pod is recreated.
+- Set `storageClassName` inside `volumeClaimTemplates` (not on a standalone PVC) to control provisioning.
+
+## Key Takeaway
+
+`volumeClaimTemplates` gives each StatefulSet pod its own dynamically provisioned PVC tied to its ordinal identity, so data survives pod deletion and rescheduling.

@@ -60,3 +60,15 @@ Cleanup:
 ```bash
 kubectl delete -f deployment-with-probes.yaml
 ```
+
+## CKAD Tips
+
+- Both `livenessProbe` and `readinessProbe` are nested under `spec.containers[].` — indentation errors here are a common exam mistake.
+- Remember the behavior difference: a failed liveness probe **restarts** the container, while a failed readiness probe only **removes the pod from Service load-balancing** (no restart).
+- Use distinct endpoints when an app can be alive before it is ready — a shared `/` path for both probes can mask real readiness problems.
+- Verify quickly with `kubectl get pods` (watch `READY` column) and `kubectl describe pod <name>` to see probe events; `kubectl logs -l <selector>` confirms the app is actually serving.
+- Tune `initialDelaySeconds`, `periodSeconds`, `timeoutSeconds`, and `failureThreshold` to the real app; defaults are often too aggressive.
+
+## Key Takeaway
+
+Adding readiness and liveness probes to a Deployment keeps traffic off unready pods and auto-recovers deadlocked containers — the core reliability pattern the CKAD expects you to configure by hand in a manifest.

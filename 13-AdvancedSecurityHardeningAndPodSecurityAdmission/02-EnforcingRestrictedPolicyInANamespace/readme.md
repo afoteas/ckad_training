@@ -159,6 +159,14 @@ kubectl delete pod privileged-pod -n test-baseline
 kubectl delete namespace test-baseline test-restricted
 ```
 
+## CKAD Tips
+
+- Create and label a namespace in two quick commands: `kubectl create ns test-restricted` then `kubectl label ns test-restricted pod-security.kubernetes.io/enforce=restricted`.
+- Read the admission error carefully — it names the exact field to fix (e.g. `allowPrivilegeEscalation != false`, `privileged (container must not set ...)`). Fix the manifest to match.
+- Confirm the labels stuck with `kubectl get ns <ns> --show-labels` before deploying test Pods.
+- Remember PSA validates the **manifest at admission time**, not runtime — a `restricted`-compliant Pod can still `CrashLoopBackOff` (stock `nginx` can't write cache dirs or bind port 80 as non-root).
+- Keep the compliant `restricted` `securityContext` block memorized so you can patch a rejected Pod quickly.
+
 ## Key Takeaway
 
 Namespace labels enforce Pod Security Standards at admission time. Non-compliant Pods are blocked with clear error messages explaining exactly what must change in the manifest.

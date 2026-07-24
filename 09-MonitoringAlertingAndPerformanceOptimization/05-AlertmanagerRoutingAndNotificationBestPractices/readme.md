@@ -60,3 +60,14 @@ inhibit_rules:
 - inhibition rules that are too broad can suppress unrelated critical alerts; test thoroughly before applying to production
 - run Alertmanager as a clustered set of instances using gossip protocol for high availability and to avoid duplicate notifications
 - secure the Alertmanager web UI and API with Ingress authentication or RBAC; the API exposes all active alerts and allows creating silences
+
+## CKAD Note
+
+Alertmanager routing, receivers, inhibition, and silences are real-world operations concepts and are **not** on the CKAD exam. You won't author routing trees or `inhibit_rules` under exam conditions.
+
+- Treat receivers/routes/silences as background knowledge for how production alerting works.
+- The in-scope adjacent skills are securing endpoints the way any Service is secured — `Ingress`, `NetworkPolicy`, and RBAC — all of which appear in their own modules.
+
+## Key Takeaway
+
+Alertmanager groups, deduplicates, and routes Prometheus alerts to the right receiver with routes, inhibition, and silences — essential production tooling, but background material rather than testable content for CKAD.

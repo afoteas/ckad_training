@@ -213,6 +213,14 @@ affinity:
 
 **Note:** podAffinity/podAntiAffinity are less common in CKAD. Focus on `nodeAffinity` first.
 
+## CKAD Tips
+
+- Label nodes imperatively: `kubectl label nodes <node> disktype=ssd`; remove with a trailing dash: `kubectl label nodes <node> disktype-`.
+- Inspect targets with `kubectl get nodes --show-labels` (or `-L disktype,performance`).
+- `nodeSelector` is exact-match only; use `nodeAffinity` for operators (`In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, `Lt`).
+- Memorize the long field names: `requiredDuringSchedulingIgnoredDuringExecution` (hard) vs `preferredDuringSchedulingIgnoredDuringExecution` (soft, weighted 1–100).
+- An unsatisfiable hard rule leaves the Pod `Pending` — `kubectl describe pod` Events explain the mismatch.
+
 ## Key Takeaway
 
 Use `nodeSelector` for simple mandatory placement and `nodeAffinity` for flexible, production-grade scheduling logic. Use `podAffinity`/`podAntiAffinity` for Pod-to-Pod relationships.

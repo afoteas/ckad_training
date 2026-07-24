@@ -168,3 +168,15 @@ kubectl rollout status deployment/guestbook-ui -n guestbook-dev
 - Keep base and overlays small and predictable.
 - Use one overlay per environment.
 - Prefer a public image for demos unless the lesson is specifically about registry auth.
+
+## CKAD Note
+
+Bootstrapping Flux and the `flux` CLI (`flux bootstrap`, `flux install`, `flux create source/kustomization`, `flux reconcile`) are **not** on the CKAD exam — that is GitOps tooling.
+
+- **Kustomize itself IS examinable**, and this chapter is a great excuse to drill it: understand `base/` + `overlays/dev|prod`, the overlay `kustomization.yaml` (`resources`, `patches`/`patchesStrategicMerge`, `namespace`, `namePrefix`, `images`), and replica patches.
+- Practice the exam-native commands the Flux Kustomization runs for you: `kubectl kustomize <dir>` to render and `kubectl apply -k <dir>` to apply.
+- Also in-scope from this lab: namespace creation (`kubectl create namespace`), the idempotent `--dry-run=client -o yaml | kubectl apply -f -` pattern, and verifying with `kubectl get pods/deploy/svc` and `kubectl rollout status`.
+
+## Key Takeaway
+
+Flux can bootstrap itself and deploy a Kustomize app straight from Git, but for CKAD the durable skill is Kustomize — building bases/overlays and applying them with `kubectl apply -k` / `kubectl kustomize` — not the Flux CLI wiring around it.

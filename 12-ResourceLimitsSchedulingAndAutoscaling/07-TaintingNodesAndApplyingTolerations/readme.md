@@ -93,6 +93,14 @@ kubectl taint nodes <node-name> dedicated=finance:NoSchedule-
 
 Removing the taint restores normal scheduling behavior on that node.
 
+## CKAD Tips
+
+- Apply/remove a taint: `kubectl taint nodes <node> dedicated=finance:NoSchedule` and re-run with a trailing `-` to remove.
+- Confirm the taint with `kubectl describe node <node>` under the **Taints** section.
+- Diagnose a blocked Pod via `kubectl describe pod` — look for `had untolerated taint`.
+- A toleration only *permits* scheduling; pair it with `nodeSelector`/affinity to actually target the node.
+- `kubectl get pod <pod> -o wide` confirms the tolerating Pod landed on the tainted node.
+
 ## Key Takeaway
 
 Taints enforce node-level restrictions. Matching tolerations are required for permitted workloads.

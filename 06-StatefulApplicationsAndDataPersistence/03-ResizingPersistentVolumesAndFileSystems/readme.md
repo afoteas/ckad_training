@@ -51,3 +51,14 @@ kubectl describe pvc <pvc-name>
 kubectl get pv
 kubectl exec <pod-name> -- df -h <mount-path>
 ```
+
+## CKAD Tips
+
+- Expansion only works when the StorageClass sets `allowVolumeExpansion: true` — verify with `kubectl get storageclass`.
+- Grow a claim by editing it (`kubectl edit pvc <name>`) and raising `spec.resources.requests.storage`; you can only increase, never shrink.
+- Track progress with `kubectl describe pvc <name>` (watch events and `status.conditions`) and confirm the new size with `kubectl exec <pod> -- df -h`.
+- Some volumes stay in `FileSystemResizePending` until the pod is restarted to finish filesystem growth.
+
+## Key Takeaway
+
+Persistent volumes can grow (never shrink) when the StorageClass allows expansion and the driver/filesystem support it; edit the PVC's requested size, then verify the new capacity inside the pod.

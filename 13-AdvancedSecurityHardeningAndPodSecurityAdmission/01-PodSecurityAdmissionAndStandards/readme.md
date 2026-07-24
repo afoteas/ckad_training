@@ -224,6 +224,14 @@ Warnings are early signals that a deployment isn't following security best pract
 
 Audit logs show violations and help you tune policies over time. Review them regularly as you tighten enforcement.
 
+## CKAD Tips
+
+- PSA is entirely **label-driven at the namespace level** — no CRDs, no PSP objects. Apply fast with `kubectl label namespace <ns> pod-security.kubernetes.io/enforce=restricted`.
+- Memorize the three modes (`enforce`, `audit`, `warn`) and three standards (`privileged`, `baseline`, `restricted`). You can stack all three modes on one namespace.
+- Be able to write a `restricted`-compliant `securityContext` from memory: `runAsNonRoot: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`, and `seccompProfile.type: RuntimeDefault`.
+- Know what `baseline` blocks vs allows (root is OK, `privileged: true` and host namespaces are not) — a common distinguishing question.
+- Start with `warn`/`audit` before `enforce` to preview breakage; verify with `kubectl get ns <ns> --show-labels`.
+
 ## Key Takeaway
 
 PSA replaces complex PodSecurityPolicy with namespace-level labels and three clear standards. Start with `warn` and `audit`, then move to `enforce` for a gradual, team-friendly path to stronger security.

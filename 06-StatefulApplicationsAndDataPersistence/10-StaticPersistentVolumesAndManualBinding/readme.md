@@ -54,17 +54,17 @@ kubectl logs -l app=static-storage-app
 
 This demo uses `hostPath` for local clusters (minikube/kind). **Not for production** — data is tied to one node. On the exam, the PV spec may use NFS, iSCSI, or a cloud volume instead; the binding logic is the same.
 
-## CKAD Tips
-
-- Create **PV first**, then PVC.
-- `storageClassName: ""` on PVC disables dynamic provisioning — forces static binding.
-- `persistentVolumeReclaimPolicy: Retain` keeps data after PVC deletion (common for static PVs).
-
 ## Cleanup
 
 ```bash
 kubectl delete -f static-storage-deployment.yaml -f static-pvc.yaml -f static-pv.yaml
 ```
+
+## CKAD Tips
+
+- Create **PV first**, then PVC.
+- `storageClassName: ""` on PVC disables dynamic provisioning — forces static binding.
+- `persistentVolumeReclaimPolicy: Retain` keeps data after PVC deletion (common for static PVs).
 
 ## Key Takeaway
 

@@ -53,18 +53,18 @@ kubectl exec <pod> -- cat /usr/share/nginx/html/ready
 
 `preStop` runs before termination — pair with `terminationGracePeriodSeconds` so the hook has time to finish.
 
+## Cleanup
+
+```bash
+kubectl delete -f lifecycle-hooks-deployment.yaml -f projected-volume-pod.yaml -f subpath-pod.yaml -f app-config.yaml
+```
+
 ## CKAD Tips
 
 - `subPath` only works for **one file per mount** — do not use it to mount a whole ConfigMap directory.
 - Projected volumes reduce multiple `volumes` entries to one mount point.
 - `postStart` runs **async** with the main process — do not rely on it completing before the app starts; use a **readiness probe** for that.
 - `preStop` + sleep is a common pattern to allow Endpoints to update before the Pod stops.
-
-## Cleanup
-
-```bash
-kubectl delete -f lifecycle-hooks-deployment.yaml -f projected-volume-pod.yaml -f subpath-pod.yaml -f app-config.yaml
-```
 
 ## Key Takeaway
 

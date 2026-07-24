@@ -48,3 +48,15 @@ kubectl create job --from=cronjob/postgres-backup manual-backup-1
 - keep short on-cluster retention
 - schedule at low-traffic windows
 - monitor job success/failure and backup age
+
+## CKAD Tips
+
+- The examinable core is the CronJob, not `pg_dump`: focus on `schedule`, `jobTemplate`, and `concurrencyPolicy`.
+- Force an immediate run for testing with `kubectl create job --from=cronjob/<name> <job-name>` instead of waiting for the schedule.
+- Inspect results with `kubectl get jobs`, `kubectl get pods -l job-name=<job>`, and `kubectl logs -l job-name=<job>`.
+- Mount the backup PVC into the Job pod and pull DB credentials from a Secret (`envFrom` or `secretKeyRef`).
+- Prune old runs with `successfulJobsHistoryLimit` / `failedJobsHistoryLimit`.
+
+## Key Takeaway
+
+A CronJob turns a scheduled command (here `pg_dump`) into recurring Jobs that write to persistent storage; for CKAD, master the CronJob mechanics and the `--from=cronjob` manual trigger while treating the backup tooling itself as real-world context.

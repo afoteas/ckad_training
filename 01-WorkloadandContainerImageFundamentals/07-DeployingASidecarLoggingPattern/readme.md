@@ -67,3 +67,14 @@ kubectl logs <pod-name> -c log-collector --previous
 ## Summary
 
 The sidecar logging pattern is a practical Kubernetes design for centralized log collection without embedding operational logging logic directly in application code.
+
+## CKAD Tips
+
+- The pattern relies on a shared `emptyDir` volume mounted in both the app container and the log-collector container.
+- Inspect each container separately: `kubectl logs deploy/<name> -c <container>` and add `--previous` for a crashed container.
+- Minimal images (BusyBox) may lack expected binary paths — wrap logic in `/bin/sh -c` via `command`/`args` rather than assuming `/usr/bin/tail`.
+- Diagnose `exec`/mount failures with `kubectl describe pod <pod>`.
+
+## Key Takeaway
+
+A logging sidecar shares an `emptyDir` with the application to collect and forward logs, keeping operational logging logic out of the application code.

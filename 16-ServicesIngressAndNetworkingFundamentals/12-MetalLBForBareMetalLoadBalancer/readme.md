@@ -109,6 +109,15 @@ metadata:
 | 3 | `L2Advertisement` | Announce the pool over ARP |
 | 4 | `type: LoadBalancer` Service | Gets a real IP from the pool |
 
+## CKAD Note
+
+This chapter is **beyond CKAD scope** — MetalLB, `IPAddressPool`, and `L2Advertisement` are not on the exam, and the exam cluster has no cloud provider (so `type: LoadBalancer` stays `<pending>`, which is expected). What *is* examinable:
+
+- Writing a `type: LoadBalancer` **Service** correctly — the grader checks the spec, not that an `EXTERNAL-IP` was assigned (lesson 03).
+- Knowing LoadBalancer is Layer 4 and that Ingress is the Layer 7 alternative (lessons 03, 05).
+
+Treat MetalLB itself as real-world context for making LoadBalancer work off-cloud, not exam material.
+
 ## Key Takeaway
 
 MetalLB makes `type: LoadBalancer` behave on bare metal exactly like it does in the cloud — you define a pool of network IPs, MetalLB assigns and advertises them. Best when you have a **block of LAN IPs**; for a single WAN IP already on one node, `hostNetwork`/`externalIPs` is simpler.

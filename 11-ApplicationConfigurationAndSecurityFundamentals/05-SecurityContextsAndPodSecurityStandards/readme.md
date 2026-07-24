@@ -106,6 +106,15 @@ Most secure and prescriptive. Enforces strong least-privilege defaults and is id
 - Scan manifests for violations before deployment.
 - Treat exceptions as explicit, reviewed decisions.
 
+## CKAD Tips
+
+- Set pod-level fields (`runAsUser`, `runAsNonRoot`, `fsGroup`) and/or container-level fields (`allowPrivilegeEscalation`, `readOnlyRootFilesystem`, `capabilities`); container level overrides pod level.
+- Drop everything then add back what's needed: `capabilities.drop: ["ALL"]` with a minimal `capabilities.add`.
+- With `readOnlyRootFilesystem: true`, mount an `emptyDir` for any path the app must write to.
+- Verify identity at runtime with `kubectl exec <pod> -- id` / `whoami` to confirm the UID and non-root.
+- Enforce Pod Security Standards per namespace via labels, e.g. `pod-security.kubernetes.io/enforce=restricted`.
+- A root image under `runAsNonRoot`/`restricted` fails to start — watch for `CreateContainerConfigError`.
+
 ## Key Takeaway
 
 SecurityContexts are one of the main workload-level security controls in Kubernetes. Combined with Pod Security Standards, they help enforce least privilege and support a stronger zero-trust posture for running applications.

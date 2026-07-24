@@ -130,3 +130,14 @@ docker run --rm aquasec/trivy:latest fs .
 ```
 
 - `kubectl set image` is script-friendly and creates new rollout revisions.
+
+## CKAD Note
+
+- Examinable: building, tagging, and pushing images (`docker build -t`, `docker tag`, `docker push`) and understanding tags/registries — part of "Define, build and modify container images."
+- Real-world/background (not on the CKAD exam): vulnerability scanning with `Trivy`, GHCR authentication, and CI promotion gates — valuable in practice but not tested.
+- On the exam you consume images by `name:tag` in Pod/Deployment specs and may set `imagePullPolicy` or `imagePullSecrets`; you will not run scanners.
+- For related in-scope image work, see [01-OCI-CompliantImagesUsingDockerfileBestPractices](../01-OCI-CompliantImagesUsingDockerfileBestPractices/readme.md) and [02-CreatingMultistageBuildsAndSlimmingImages](../02-CreatingMultistageBuildsAndSlimmingImages/readme.md).
+
+## Key Takeaway
+
+Building, tagging, and pushing images is exam-relevant, but image scanning and registry security tooling (Trivy, GHCR) are real-world practices beyond CKAD scope.

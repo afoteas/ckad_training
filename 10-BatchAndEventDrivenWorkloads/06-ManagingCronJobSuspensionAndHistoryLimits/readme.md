@@ -92,3 +92,15 @@ The CronJob will immediately resume scheduling on the next cron interval.
 - **clarity**: Developers see only relevant recent Jobs, not years of history
 - **cost**: Fewer objects = smaller database = lower cloud storage costs
 - **balance**: Keep enough history for debugging (failed Jobs) while pruning old successes
+
+## CKAD Tips
+
+- Suspend/resume a CronJob imperatively with `kubectl patch cronjob <name> -p '{"spec":{"suspend":true}}'` (set `false` to resume); the `SUSPEND` column reflects the state.
+- Tune retention with `successfulJobsHistoryLimit` (default 3) and `failedJobsHistoryLimit` (default 1); the controller prunes older Jobs automatically.
+- You can't `kubectl logs` a CronJob — drill down CronJob → Job → Pod; find the newest Job then `kubectl logs job/<job>`.
+- `kubectl get cronjob <name>` shows `SCHEDULE`, `SUSPEND`, `ACTIVE`, and `LAST SCHEDULE` at a glance.
+- Suspending does not kill already-running Jobs; it only stops scheduling new ones.
+
+## Key Takeaway
+
+Use `suspend` to pause a CronJob during maintenance without deleting it, and the `successfulJobsHistoryLimit`/`failedJobsHistoryLimit` fields to auto-prune old Jobs so they don't accumulate and bloat etcd.

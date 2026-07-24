@@ -113,6 +113,13 @@ Note: actually wiring `encryption-config.yaml` into the API server requires clus
 - Pair encryption at rest with RBAC and namespace isolation.
 - Remember that base64 is not security.
 
+## CKAD Note
+
+- Configuring encryption at rest is a **cluster-admin / CKA** task: it requires an `EncryptionConfiguration` file, editing the `kube-apiserver` static Pod manifest, and control-plane access — all outside CKAD exam scope.
+- For CKAD, focus on the in-scope adjacent skills: creating and consuming Secrets (see `03-SecretManagement`) and restricting access to them with RBAC.
+- Know conceptually that base64 in a Secret manifest is not encryption and that an etcd provider like `aescbc` encrypts data at rest — but you won't wire up `--encryption-provider-config` on the exam.
+- The re-write trick `kubectl get secrets --all-namespaces -o json | kubectl replace -f -` is useful real-world knowledge, not a CKAD objective.
+
 ## Key Takeaway
 
 Encryption at rest protects Secret data inside etcd and closes a major control-plane security gap. It does not replace RBAC, secret rotation, or careful operational handling, but it is an important foundational safeguard.

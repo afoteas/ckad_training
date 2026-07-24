@@ -58,6 +58,14 @@ kubectl apply -f ../02-SettingRequestsAndLimitsInPods/constrained-app.yaml -n de
 kubectl get deployment -n dev
 ```
 
+## CKAD Tips
+
+- Both objects are namespaced — always include `-n <namespace>` on `apply` and `get`/`describe`.
+- `kubectl describe resourcequota -n dev` shows **Used vs Hard** — the fastest way to see remaining budget.
+- With a quota on `requests`/`limits`, Pods that omit those fields are **rejected** unless a `LimitRange` supplies defaults.
+- `LimitRange` uses `default` (limits), `defaultRequest` (requests), plus per-container `min`/`max`.
+- Quota violations fail at admission — the `kubectl apply` error names the offending resource.
+
 ## Key Takeaway
 
 `ResourceQuota` enforces tenant-level budget boundaries, while `LimitRange` enforces safe per-workload defaults and limits.

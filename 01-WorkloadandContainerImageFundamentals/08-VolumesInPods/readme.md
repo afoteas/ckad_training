@@ -131,3 +131,14 @@ The detailed storage notes previously discussed in workload context are intentio
 ## Summary
 
 Volume choice is driven by lifecycle needs. For Pod-lifetime data, use emptyDir or ephemeral patterns. For durable application state, move to PVC-backed storage.
+
+## CKAD Tips
+
+- `emptyDir` is the go-to Pod-lifetime scratch/shared volume — created on scheduling, deleted with the Pod.
+- Inject configuration via ConfigMap/Secret volumes (or env vars) instead of baking values into images.
+- Every volume needs both a `spec.volumes` entry and a matching `volumeMounts` entry in the container.
+- Debug stuck mounts with `kubectl describe pod` (look for `FailedMount`); a bad CSI `driver` name is common — verify with `kubectl get csidrivers`.
+
+## Key Takeaway
+
+Choose volumes by lifecycle: `emptyDir`/ephemeral for Pod-lifetime data, ConfigMap/Secret for config injection, and PVCs (lesson 09) for state that must outlive the Pod.

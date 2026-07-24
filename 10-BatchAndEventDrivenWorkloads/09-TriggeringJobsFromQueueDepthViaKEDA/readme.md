@@ -158,3 +158,15 @@ kubectl delete triggerauthentication azure-queue-auth
 ```
 
 This also deletes any running Jobs created by the ScaledJob.
+
+## CKAD Note
+
+The KEDA `ScaledJob` pattern (plus `TriggerAuthentication` and queue triggers like `azure-queue`) is real-world tooling and **not** examinable on CKAD.
+
+- **In scope**: writing the underlying `Job` spec (`template`, `restartPolicy`, `completions`), consuming `Secret` values via `secretKeyRef`/`env`, and understanding `Job` lifecycle.
+- **Background only**: `ScaledJob` fields such as `maxReplicaCount`, `minReplicaCount`, and `pollingInterval`, and wiring credentials through `TriggerAuthentication`.
+- Focus your exam prep on how the Job it creates is defined and how it reads Secrets, since those are core CKAD skills.
+
+## Key Takeaway
+
+KEDA's `ScaledJob` creates Kubernetes Jobs on demand from queue depth and scales to zero when idle, so you pay only for work performed — but it's an add-on beyond CKAD scope; the examinable part is the `Job` template and Secret consumption it builds on.

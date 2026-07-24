@@ -114,6 +114,30 @@ tilt trigger myapp
 3. Use the UI to track failures quickly.
 4. Watch CPU/RAM usage as stack size increases.
 
+## Key Features
+
+- **Multi-service dashboard**: View all services in one place
+- **Selective rebuilds**: Only rebuild affected services
+- **Resource streaming**: See logs from all services
+- **Hot reload**: Automatic rebuilds on file changes
+- **Error tracking**: Highlight build/deploy issues
+
+## Workflow Tips
+
+1. Group related services with labels
+2. Set explicit resource dependencies
+3. Use Tilt UI to trigger manual rebuilds
+4. Monitor resource usage in dashboard
+5. Enable specific services for focused work
+
+## CKAD Note
+
+Tilt (Starlark `Tiltfile`, live update, multi-service dashboard) is local-dev orchestration tooling and is **not** part of the CKAD exam.
+
+- You won't write a `Tiltfile`, run `tilt up`, or configure `k8s_resource`/`custom_build` on the exam.
+- The objects Tilt deploys — Deployments, Services, and their startup ordering (`resource_deps`) — map to real CKAD skills you perform with `kubectl` and manifests (readiness probes, init containers).
+- Use this chapter to understand multi-service workflows conceptually, not as exam material.
+
 ## Key Takeaway
 
 Tilt is a strong choice for local Kubernetes microservice development because it centralizes build, deploy, and monitoring into one fast feedback workflow.
@@ -135,19 +159,3 @@ custom_build(
   tag='dev',
 )
 ```
-
-## Key Features
-
-- **Multi-service dashboard**: View all services in one place
-- **Selective rebuilds**: Only rebuild affected services
-- **Resource streaming**: See logs from all services
-- **Hot reload**: Automatic rebuilds on file changes
-- **Error tracking**: Highlight build/deploy issues
-
-## Workflow Tips
-
-1. Group related services with labels
-2. Set explicit resource dependencies
-3. Use Tilt UI to trigger manual rebuilds
-4. Monitor resource usage in dashboard
-5. Enable specific services for focused work

@@ -57,7 +57,14 @@ The key benefit is that your manifest becomes shorter and more domain-focused be
 - teams can express intent with business-level objects instead of low-level primitives
 - repeated application definitions become simpler and more consistent
 
-## Key Takeaways
+## CKAD Tips
+
+- Register a CRD with `kubectl apply -f crd-application.yaml`, then confirm with `kubectl get crds` and `kubectl api-resources | grep application`.
+- Once installed, manage instances like native objects and use the CRD's short name (e.g. `kubectl get app`) as a time-saver.
+- Know the schema validation levers tested in practice: integer `minimum`/`maximum`, `enum` allowed values (`dev`/`staging`/`prod`), and `required` fields — invalid custom resources are rejected on apply.
+- Remember a CRD only defines and validates a type; it does not create Pods/Deployments — that needs a controller/operator.
+
+## Key Takeaway
 
 - a CRD by itself registers a new type; it does not deploy workloads automatically
 - custom resource instances become first-class Kubernetes objects once the CRD is installed

@@ -88,7 +88,15 @@ Verify the result:
 kubectl get deployment nginx -n demo -o json | jq '.spec.replicas, .status.replicas, .status.readyReplicas'
 ```
 
-## Key Takeaways
+## CKAD Tips
+
+- On the exam you won't have `jq`, but the underlying skills transfer: prefer `kubectl get -o jsonpath` and `--sort-by` for field extraction and ordering.
+- `kubectl get pods -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,IP:.status.podIP` gives jq-like tables with no external tools.
+- Filter by label fast with `-l app=nginx` (or `--field-selector status.phase=Running`) instead of parsing JSON.
+- `kubectl scale deployment nginx --replicas=5` and `kubectl get deploy nginx -w` are quick imperative time-savers during troubleshooting tasks.
+- Reach for `kubectl describe` and `kubectl get -o yaml` to inspect events, images, requests/limits without jq.
+
+## Key Takeaway
 
 - use `kubectl -o json` when default output hides useful fields
 - use `jq` to extract names, status, labels, images, and resource settings

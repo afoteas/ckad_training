@@ -48,3 +48,15 @@ Blue/Green is ideal when you need predictable cutover and fast rollback with min
 1. temporary double resource usage (compute and memory)
 2. higher complexity for stateful systems and data synchronization
 3. requires disciplined internal testing before cutover
+
+## CKAD Tips
+
+- Blue/Green is explicitly named in the CKAD curriculum — know it means two full versions running side by side with a Service selector deciding which is live.
+- Do the cutover imperatively: `kubectl patch svc <svc> -p '{"spec":{"selector":{"version":"green"}}}'` is faster than `kubectl edit`.
+- Rollback is just flipping the selector back to `blue`; keep the Blue Deployment running until Green is validated.
+- Remember the main trade-off: you pay for double the compute/memory while both environments coexist.
+- Stateful apps are the hard case — the traffic switch is easy, but database/data synchronization is not.
+
+## Key Takeaway
+
+Blue/Green delivers near-zero-downtime releases and instant rollback by switching a Service selector between two parallel versions, at the cost of temporarily running double the resources.

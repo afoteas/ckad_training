@@ -61,6 +61,14 @@ spec:
 - Tune continuously as traffic and behavior change.
 - Keep development and production resource profiles separate.
 
+## CKAD Tips
+
+- Add resources fast on an existing workload: `kubectl set resources deployment <name> --requests=cpu=250m,memory=256Mi --limits=cpu=500m,memory=512Mi`.
+- Requests drive scheduling; limits enforce runtime — memory over limit is **OOMKilled**, CPU over limit is **throttled** (never killed).
+- CPU is compressible, memory is not — remember this distinction for exam scenarios.
+- A Pod whose CPU and memory `requests` equal its `limits` gets `Guaranteed` QoS; check with `kubectl describe pod`.
+- If no node can satisfy the requests, the Pod stays `Pending` — read `kubectl describe pod` Events.
+
 ## Key Takeaway
 
 Requests drive scheduling guarantees. Limits enforce runtime fairness. Both are needed for reliable multi-tenant Kubernetes clusters.

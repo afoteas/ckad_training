@@ -37,6 +37,14 @@ kubectl describe pod "$POD"
 - `kubectl describe pod` shows both requests and limits under the container.
 - The values match your manifest.
 
+## CKAD Tips
+
+- Verify quickly: `kubectl describe pod <pod>` shows `Requests:` and `Limits:` under each container.
+- Edit an existing Deployment without touching YAML: `kubectl set resources deployment <name> --requests=cpu=100m,memory=64Mi --limits=cpu=200m,memory=128Mi`.
+- Know the units: CPU `m` (millicores, `1000m` = 1 core); memory `Mi`/`Gi` (binary) vs `M`/`G` (decimal).
+- Spot-check with `kubectl get pod <pod> -o jsonpath='{.spec.containers[0].resources}'`.
+- Pods with no requests/limits are valid YAML but land in `BestEffort` QoS.
+
 ## Key Takeaway
 
 Setting requests and limits in manifests makes scheduling predictable and prevents one workload from monopolizing node resources.

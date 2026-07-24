@@ -39,3 +39,15 @@ Flux is a GitOps toolkit that continuously reconciles Kubernetes resources from 
 - Start with shorter intervals in labs and longer in production.
 - Keep one Kustomization per bounded app or domain.
 - Monitor controller logs when resources are not applying.
+
+## CKAD Note
+
+Flux and Argo CD architectures (source/kustomize/helm/notification controllers, `GitRepository`, `Kustomization`, `HelmRelease` CRDs) are **not** on the CKAD exam. Neither is the Flux↔Argo CD component mapping shown here — it is useful background, not testable material.
+
+- The examinable overlap: the *Kustomize* concepts these tools automate (bases/overlays, `kubectl kustomize`, `kubectl apply -k`) and *Helm* releases (`helm install/upgrade`) are in-scope on their own.
+- "Reconciliation is eventually consistent" is a real-world property of these controllers; on the exam you apply and verify changes yourself and there is no controller re-applying drift.
+- Inspecting controller logs maps to the examinable `kubectl logs` skill, useful for any Pod.
+
+## Key Takeaway
+
+Flux (like Argo CD) uses a set of controllers to continuously reconcile Git into the cluster; for CKAD, only the underlying Kubernetes/Kustomize/Helm mechanics are testable — the GitOps controller architecture is background knowledge.

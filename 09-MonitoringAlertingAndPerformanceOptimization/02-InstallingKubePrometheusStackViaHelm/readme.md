@@ -49,3 +49,14 @@ kubectl port-forward svc/monitoring-grafana 3000:80 --namespace monitoring
 Open `http://localhost:3000`, log in with username `admin` and the decoded password.
 
 Navigate to **Dashboards → Kubernetes / Compute Resources / Cluster** to confirm metrics are flowing.
+
+## CKAD Note
+
+Installing the monitoring stack with Helm is real-world tooling and is **not** examinable — Helm itself is not on the CKAD exam. The transferable, in-scope skills here are the plain `kubectl` verbs used to verify the install.
+
+- `kubectl get pods -n monitoring` to check rollout status and `kubectl port-forward svc/... 9090:9090 -n monitoring` to reach a service locally are both examinable techniques.
+- Decoding a Secret with `kubectl get secret ... -o jsonpath="{.data.admin-password}" | base64 --decode` is a genuine CKAD pattern — practice it independently of Grafana.
+
+## Key Takeaway
+
+Helm bundles the whole Prometheus/Grafana stack into one release, but for CKAD what matters is the underlying `kubectl` workflow — verifying pods, port-forwarding to services, and reading Secrets — not the Helm chart itself.

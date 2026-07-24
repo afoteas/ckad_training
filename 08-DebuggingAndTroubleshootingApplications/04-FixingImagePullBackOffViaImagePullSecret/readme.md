@@ -45,3 +45,15 @@ kubectl describe pod <pod-name>
 
 - never hard-code credentials in workload manifests
 - prefer short-lived tokens when supported by registry
+
+## CKAD Tips
+
+- The fast path is imperative: `kubectl create secret docker-registry <name> --docker-server=... --docker-username=... --docker-password=... --docker-email=...`.
+- `imagePullSecrets` is a list under `spec:` (a peer of `containers:`); each entry is just `- name: <secret>`.
+- Verify the secret exists with `kubectl get secrets` and confirm it is type `kubernetes.io/dockerconfigjson`.
+- After applying, re-check with `kubectl get pods` and `kubectl describe pod <pod>` to see the pull succeed.
+- For a deployment, patch the pod template's `imagePullSecrets` (not the top-level deployment spec) so new pods inherit the credentials.
+
+## Key Takeaway
+
+Fixing a private-registry `ImagePullBackOff` is a two-step pattern: create a `docker-registry` secret, then reference it under the pod spec's `imagePullSecrets` so the kubelet can authenticate and pull.

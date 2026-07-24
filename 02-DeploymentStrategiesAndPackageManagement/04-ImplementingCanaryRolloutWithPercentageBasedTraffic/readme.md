@@ -89,3 +89,15 @@ Effect: faster replacement but potential temporary outage.
 ### Practical Insight
 
 For critical APIs, use conservative rollout settings and only increase aggressiveness when cluster capacity and SLO risk are well understood.
+
+## CKAD Tips
+
+- `maxUnavailable` and `maxSurge` live under `spec.strategy.rollingUpdate` — memorize what each one controls.
+- `maxUnavailable: 0` + `maxSurge: 1` is the safest profile: never drop a pod until the new one is Ready (≈20% slice with 5 replicas).
+- Trigger updates imperatively with `kubectl set image deploy critical-api api-container=nginx:1.25.1` and watch `kubectl rollout status`.
+- `kubectl rollout pause` / `resume deploy <name>` freezes a rollout mid-way so you can validate the canary pods.
+- Replica-based canary is only approximate — exact percentages require a service mesh or Ingress traffic splitting.
+
+## Key Takeaway
+
+Tuning `maxUnavailable` and `maxSurge` on a RollingUpdate controls how many pods carry the new version at once, approximating a canary rollout without any extra tooling.

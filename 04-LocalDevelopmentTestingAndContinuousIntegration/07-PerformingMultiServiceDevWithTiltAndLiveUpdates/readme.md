@@ -114,3 +114,15 @@ tilt status
 # Inspect a specific resource
 tilt describe my-service
 ```
+
+## CKAD Note
+
+Tilt live updates (`sync`, `run` triggers, `live_update`, selective `tilt up`/`tilt trigger`) are advanced local-dev tooling and are **out of scope** for CKAD.
+
+- None of the `docker_build`/`live_update` Starlark configuration is tested.
+- The transferable idea is startup ordering and dependencies (`resource_deps`), which on the exam you express through readiness probes, init containers, and correct Service wiring.
+- Debug workloads on the exam with `kubectl logs`, `kubectl describe`, and `kubectl exec` — not `tilt logs`/`tilt status`.
+
+## Key Takeaway
+
+Tilt live updates sync code straight into running containers to skip image rebuilds for fast multi-service iteration, but this is a developer-experience optimization with no CKAD exam relevance.

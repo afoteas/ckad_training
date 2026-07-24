@@ -42,3 +42,15 @@ Interpretation:
 - tune delays and thresholds to realistic startup times
 - validate behavior in staging before production rollout
 - watch pod events/logs for probe failures and timing issues
+
+## CKAD Tips
+
+- Know all three probe types: `readinessProbe` (serve traffic?), `livenessProbe` (restart if unhealthy?), and `startupProbe` (finished booting?).
+- Each probe supports an `exec`, `httpGet`, or `tcpSocket` handler plus `initialDelaySeconds`, `periodSeconds`, `failureThreshold`, and `timeoutSeconds`.
+- A `startupProbe` suspends liveness/readiness until it succeeds; size its budget as `failureThreshold * periodSeconds` for slow databases.
+- Add probes by editing the pod template YAML — there is no `kubectl` generator for probes.
+- Debug with `kubectl describe pod <name>` (probe failure events) and the pod's restart count from `kubectl get pod`.
+
+## Key Takeaway
+
+Readiness probes keep traffic away from a not-yet-ready database while startup probes give slow-booting databases time before liveness/readiness engage, together preventing dropped connections and restart loops.

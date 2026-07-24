@@ -101,3 +101,15 @@ kubectl logs <pod-name> --all-containers --tail=200
 ### Practical Note
 
 For demos and training, intentionally imperfect values are useful for learning rollback behavior and operational diagnosis.
+
+## CKAD Tips
+
+- Practice the full lifecycle end to end: `helm repo add`/`update` → `helm install` → `helm upgrade` → `helm rollback`, checking `helm status` at each step.
+- Inspect the values actually applied with `helm get values <release>` and the release timeline with `helm history <release>`.
+- `--set key=value` overrides chart values inline and multiple `--set` flags stack.
+- Diagnose a failed upgrade with `kubectl rollout status deployment <name>`, then `kubectl describe pod` and `kubectl logs`.
+- Gotcha: `externalDatabase.host=localhost` resolves to the pod itself, not your host — a deliberate failure to practice rollback.
+
+## Key Takeaway
+
+A Helm release moves through install → upgrade → rollback, and combining `helm status`/`history` with `kubectl` diagnostics lets you validate each step and recover quickly from a bad upgrade.

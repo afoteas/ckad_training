@@ -97,3 +97,15 @@ spec:
 - avoid high `parallelism` if the task contends for limited backend resources (DB connection pool, rate-limited API)
 - use `activeDeadlineSeconds` to prevent runaway jobs
 - for scheduled tasks, use CronJob instead of manual Job creation
+
+## CKAD Tips
+
+- Generate a Job fast with `kubectl create job pi --image=perl -- perl -Mbignum=bpi -wle "print bpi(2000)"`, then `--dry-run=client -o yaml` to a file and edit.
+- Remember the pod template `restartPolicy` MUST be `Never` or `OnFailure`; the default `Always` is rejected for Jobs.
+- Know the default values cold: `completions: 1`, `parallelism: 1`, `backoffLimit: 6`.
+- `backoffLimit` counts pod *failures* (retries), while `activeDeadlineSeconds` is a hard wall-clock cap that fails the Job regardless of retries left.
+- Watch progress and retry counts with `kubectl get job <name> -w` and `kubectl describe job <name>`.
+
+## Key Takeaway
+
+A Job runs pods to successful completion and retries failures up to `backoffLimit`, unlike a Deployment which keeps pods running forever — always set an appropriate `restartPolicy` (`Never`/`OnFailure`) and tune `completions`, `parallelism`, and `backoffLimit` to match the task.

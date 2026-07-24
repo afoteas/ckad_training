@@ -128,6 +128,14 @@ skaffold dev --port-forward
 - Large projects can consume more CPU and memory during rapid rebuilds
 - You should still monitor resource use while developing
 
+## CKAD Note
+
+Skaffold is a developer inner-loop tool and is **not** on the CKAD exam — nothing in `skaffold dev`, `skaffold.yaml`, or its builders (Docker/Kaniko/Buildpacks) is tested.
+
+- The exam expects you to build/deploy manually with `kubectl apply -f`, `kubectl set image`, and `kubectl rollout status`/`undo`.
+- What Skaffold automates (build → push → deploy → watch) maps to skills you *are* tested on, just performed by hand.
+- Treat the `skaffold.yaml` schema (`build.artifacts`, `deploy.kubectl.manifests`) as background, not something to memorize.
+
 ## Key Takeaway
 
 Use Skaffold when you want fast, automated Kubernetes development with minimal manual redeploy work and tight feedback loops.

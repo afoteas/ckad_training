@@ -84,3 +84,14 @@ This is the critical handoff that keeps heavy build tools out of the final image
 ## Summary
 
 Multi-stage builds are a core production practice for Kubernetes images: build with full tooling, ship only what is required to run.
+
+## CKAD Tips
+
+- Multi-stage builds are the exam-friendly way to modify and slim images: a `builder` stage compiles, a minimal final stage runs.
+- The critical line is `COPY --from=builder ...` — it copies only the artifact and leaves the toolchain behind.
+- Use `alpine` or `scratch` for the final stage and run as a non-root user to minimize size and attack surface.
+- Verify size with `docker images app-demo:multi-stage` and behavior with `docker run --rm -p 8080:8080 ...` before pushing.
+
+## Key Takeaway
+
+Build with the full toolchain but ship only the compiled artifact — multi-stage builds cut image size (often 80–95%) and attack surface without changing application behavior.

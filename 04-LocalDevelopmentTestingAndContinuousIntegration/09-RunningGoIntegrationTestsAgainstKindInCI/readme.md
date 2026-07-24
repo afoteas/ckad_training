@@ -68,3 +68,15 @@ kind delete cluster --name ci
 ## Summary
 
 This approach gives you reliable Kubernetes integration validation in GitHub Actions using an ephemeral kind cluster, real Go integration tests, standardized JUnit results, and guaranteed teardown.
+
+## CKAD Note
+
+GitHub Actions workflows, kind-in-CI, and JUnit export are CI/CD tooling and are **not** examinable on CKAD.
+
+- No exam task involves writing workflow YAML, `kind load docker-image`, or generating JUnit reports.
+- The in-scope core is the `kubectl` sequence the CI wraps: `kubectl apply -f`, `kubectl rollout status --timeout`, then cleanup — practise those directly.
+- Carry over the exam-relevant habits shown here: explicit `--timeout` values and confirming rollout success before asserting.
+
+## Key Takeaway
+
+This chapter automates real Kubernetes integration testing in CI with a disposable kind cluster and guaranteed teardown, but for CKAD you only need the manual `kubectl apply` → `rollout status` → verify flow it orchestrates.

@@ -55,3 +55,15 @@ kubectl delete pod crashloop-demo
 2. Inspect pod events with `describe`.
 3. Read logs for application error details.
 4. Use cluster events for timeline context.
+
+## CKAD Tips
+
+- Distinguish the two failure classes fast: `ImagePullBackOff`/`ErrImagePull` is a pull problem (fix the image/tag/credentials), while `CrashLoopBackOff` is the app exiting after start (fix via logs).
+- For crash loops, `kubectl logs <pod>` may be empty for the current attempt — use `kubectl logs <pod> --previous` to read the last crashed container's output.
+- Watch the `RESTARTS` column with `kubectl get pods -w` to confirm a genuine restart loop rather than a one-off failure.
+- `kubectl describe pod <pod>` surfaces the pull/backoff reason text and event history in one place; combine with `kubectl get events --sort-by='.lastTimestamp'` for ordering.
+- Always clean up demo pods with `kubectl delete pod <name>` so leftover failing pods don't skew later checks.
+
+## Key Takeaway
+
+A reliable debug sequence — status/restarts, then `describe`, then `logs` (with `--previous`), then sorted events — separates image-pull failures from application crashes and pinpoints root cause quickly.

@@ -49,3 +49,15 @@ kubectl delete job retry-on-failure-job
 ```
 
 This deletes the Job and all associated pods.
+
+## CKAD Tips
+
+- `backoffLimit: N` means N+1 total attempts (1 original + N retries); if all fail the Job is marked `Failed`.
+- With `restartPolicy: OnFailure` the kubelet restarts the container in place; with `Never` the controller spawns a brand-new pod per attempt — expect more pod objects to inspect.
+- Failed and succeeded attempts are all findable via the label `job-name=<job>`: `kubectl get pods -l job-name=retry-on-failure-job`.
+- Use `kubectl get job <name> --watch` to see `COMPLETIONS` go from `0/1` to `1/1`, and `kubectl describe job` to read the events/retry history.
+- Grab logs from a specific attempt with `kubectl logs <pod-name>` before cleanup deletes them.
+
+## Key Takeaway
+
+`backoffLimit` lets a Job tolerate transient failures by automatically retrying until it succeeds or the limit is exhausted, so intermittent problems (like a flaky DB connection) don't cause a missed run.

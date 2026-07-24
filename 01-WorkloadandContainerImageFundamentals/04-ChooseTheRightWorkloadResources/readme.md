@@ -76,3 +76,14 @@ Typical examples:
 ## Summary
 
 Choosing the correct workload type is foundational for reliability and operational efficiency in Kubernetes. Workload controllers encode intent, and Kubernetes reconciles toward that desired state.
+
+## CKAD Tips
+
+- Use imperative generators to save time: `kubectl create deployment`, `kubectl create job`, and `kubectl create cronjob --schedule="..."`.
+- Match resource to requirement: Deployment (stateless + scaling), Job (run-to-completion), CronJob (scheduled), DaemonSet (one per node), bare Pod (debug only).
+- Add `--dry-run=client -o yaml` to any generator to scaffold a manifest fast, then edit it.
+- Jobs use `restartPolicy: Never` or `OnFailure` (never `Always`); tune with `completions`, `parallelism`, and `backoffLimit`.
+
+## Key Takeaway
+
+Pick the workload controller that encodes your intent — continuous service, finite task, schedule, or per-node agent — and let Kubernetes reconcile toward that desired state.

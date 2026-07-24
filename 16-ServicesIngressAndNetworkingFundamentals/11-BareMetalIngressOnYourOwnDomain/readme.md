@@ -137,6 +137,16 @@ kubectl delete -f myservice-ingress.yaml -f myservice-clusterip.yaml -f myservic
 | 3 | Routing | ClusterIP `myservice` + Ingress `host: myservice.mydomain.com` |
 | 4 | TLS | Cloudflare-terminated, or cert-manager + Let's Encrypt at the Ingress |
 
+## CKAD Note
+
+This chapter is **beyond CKAD scope** — the exam never asks you to wire bare-metal networking (`hostNetwork`, `externalIPs`, DNS, or a public IP). What *is* examinable lives in the earlier lessons and still applies here unchanged:
+
+- Writing a **ClusterIP** Service and an **Ingress** with a `host` rule (lessons 02, 06).
+- Setting `ingressClassName` and mapping a host/path to a backend Service (lessons 05–07).
+- Knowing that `type: LoadBalancer` sits `<pending>` without a provider (lesson 03).
+
+Treat the bare-metal parts (Step 2) as real-world context, not exam material.
+
 ## Key Takeaway
 
 On the cloud, `type: LoadBalancer` auto-wires external access. On bare metal you do it yourself with `hostNetwork`/`externalIPs`/MetalLB — but DNS, the ClusterIP+Ingress routing, and TLS are identical to the cloud lessons.

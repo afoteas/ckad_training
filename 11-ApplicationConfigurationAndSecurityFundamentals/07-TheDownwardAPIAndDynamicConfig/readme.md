@@ -96,6 +96,14 @@ kubectl delete -f downwardapi-demo.yaml
 - Only inject fields the application really needs.
 - Validate how your application parses labels and annotations before production use.
 
+## CKAD Tips
+
+- Env vars use `valueFrom.fieldRef` (e.g. `metadata.name`, `metadata.namespace`, `status.podIP`) and `resourceFieldRef` for CPU/memory requests and limits.
+- Labels and annotations can ONLY be exposed through a `downwardAPI` volume — not as environment variables.
+- Volume-mounted fields update when labels/annotations change; env-var fields are fixed at container start.
+- Verify quickly with `kubectl exec <pod> -- printenv POD_NAME` and `kubectl exec <pod> -- cat /etc/podinfo/labels`.
+- No ServiceAccount token or RBAC is needed — the kubelet injects the data, so it never touches the API server.
+
 ## Key Takeaway
 
 The Downward API gives Kubernetes workloads built-in self-awareness. It is a simple and powerful way to expose Pod metadata and resource information to applications without extra API permissions.

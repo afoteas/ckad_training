@@ -97,3 +97,15 @@ kubectl apply -k overlays/prod
 ```
 
 Same base manifests are reused while overlays safely represent environment-specific operational policies.
+
+## CKAD Tips
+
+- Render each overlay with `kubectl kustomize overlays/<env>` before running `kubectl apply -k overlays/<env>`.
+- Patches must match the target `kind` and `name` exactly (`Deployment`/`web-app`) or they silently do nothing.
+- Overlays adjust `replicas` and container resource requests/limits per environment while reusing one base.
+- Verify with `kubectl get deploy web-app -o wide` and `--show-labels`; clean up with `kubectl delete -k overlays/<env>`.
+- Mind the namespace — query the same namespace the overlay sets or `kubectl get` returns nothing.
+
+## Key Takeaway
+
+One base plus dev and prod overlays lets you tune replicas and resources per environment reproducibly; the reliable exam workflow is always render, then apply, then verify.

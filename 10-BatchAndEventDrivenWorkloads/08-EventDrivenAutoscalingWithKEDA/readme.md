@@ -115,3 +115,15 @@ Verify:
 kubectl get pods -n keda
 kubectl get crd | grep keda
 ```
+
+## CKAD Note
+
+KEDA is a third-party add-on (CRDs like `ScaledObject`, `ScaledJob`, and `TriggerAuthentication` under `keda.sh`) and is **not** part of the CKAD exam or a default cluster.
+
+- **In scope for CKAD**: the native `HorizontalPodAutoscaler` (CPU/memory metrics), plus `Job` and `CronJob` for batch/scheduled work.
+- **Background only**: event-driven scaling, scale-to-zero, and external triggers (RabbitMQ, Kafka, SQS) — understand the concept, but you won't be asked to author KEDA manifests.
+- Contrast KEDA's event-based scaling with CronJob's time-based scheduling to reinforce which tool fits which problem.
+
+## Key Takeaway
+
+KEDA extends Kubernetes autoscaling beyond CPU/memory to external event sources (queue depth, stream lag) and enables scale-to-zero by feeding custom metrics into the HPA — powerful in the real world, but beyond CKAD scope where the native HPA and Jobs/CronJobs are what's tested.

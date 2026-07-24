@@ -215,6 +215,14 @@ kubectl delete -f default-seccomp-pod.yaml
 kubectl delete -f custom-seccomp-pod.yaml
 ```
 
+## CKAD Tips
+
+- For a custom profile, set both fields under `securityContext.seccompProfile`: `type: Localhost` and `localhostProfile: <file>`.
+- `Localhost` profiles are loaded from `/var/lib/kubelet/seccomp/` on the node — the JSON must exist on **every** node the Pod could schedule to (all `kind` workers or the minikube node).
+- Verify the applied profile with `kubectl get pod <p> -o jsonpath='{.spec.securityContext.seccompProfile}'`.
+- A denied syscall surfaces as `CrashLoopBackOff` — check `kubectl logs <pod>` to confirm the profile is blocking as intended.
+- Contrast with `RuntimeDefault`, which needs no files and is the safe baseline required by PSA `restricted`.
+
 ## Key Takeaway
 
 `Localhost` seccomp profiles let you define fine-grained syscall restrictions beyond the runtime default. Copy the JSON to every node (all kind workers or the minikube node), reference it in `securityContext.seccompProfile`, and test thoroughly before enforcing in production.

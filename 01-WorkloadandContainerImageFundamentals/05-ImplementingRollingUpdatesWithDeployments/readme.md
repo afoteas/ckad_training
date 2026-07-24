@@ -61,3 +61,14 @@ kubectl rollout history deployment/webserver
 ## Summary
 
 Rolling updates are the default and safest Deployment upgrade path for stateless applications in Kubernetes, offering controlled replacement, observability, and rollback support.
+
+## CKAD Tips
+
+- Trigger updates with `kubectl set image deployment/<name> <container>=<image:tag>` and watch with `kubectl rollout status deployment/<name>`.
+- Roll back fast with `kubectl rollout undo deployment/<name>` (add `--to-revision=N`); inspect revisions via `kubectl rollout history`.
+- Each pod-template change creates a new ReplicaSet — `kubectl get rs` shows old vs new during the transition.
+- Control disruption with `strategy.rollingUpdate.maxSurge` / `maxUnavailable`; use `kubectl rollout pause`/`resume` for canary-style changes.
+
+## Key Takeaway
+
+Rolling updates are the default, zero-downtime way to change a Deployment — incremental Pod replacement with built-in status tracking and one-command rollback.

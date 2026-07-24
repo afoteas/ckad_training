@@ -30,3 +30,15 @@ GitOps is an operating model where Git is the single source of truth for both ap
 
 - Intentionally change a replica count in-cluster and observe auto-reconciliation.
 - Compare last synced revision with current live resources.
+
+## CKAD Note
+
+GitOps as an operating model (pull-based controllers, reconciliation loops, drift self-healing) is **not** part of the CKAD exam — it is real-world platform tooling.
+
+- Examinable foundations underneath GitOps: writing declarative manifests and applying them with `kubectl apply -f`, previewing changes with `kubectl diff -f` and `kubectl apply --dry-run=client`.
+- Know how to inspect desired-vs-live differences with `kubectl get -o yaml` and `kubectl describe`, since that is the manual equivalent of reconciliation.
+- The GitOps flow (feature branch, PR review, controller sync) is background context; CKAD tests your ability to declaratively define and manage the resources themselves.
+
+## Key Takeaway
+
+GitOps makes Git the single source of truth and lets controllers continuously reconcile the cluster to match it; for CKAD, focus on the underlying declarative-configuration skills (`kubectl apply`, `diff`, `--dry-run`) rather than the GitOps workflow itself.

@@ -67,17 +67,17 @@ kubectl get storageclass
 
 Common causes: no default StorageClass, wrong `storageClassName`, or provisioner unavailable.
 
-## CKAD Tips
-
-- PVC is **namespaced**; PV is **cluster-scoped**.
-- Omit `storageClassName` to use the default class; set `storageClassName: ""` to disable dynamic provisioning (static binding only).
-- `volumeMode: Filesystem` (default) vs `Block` — rarely tested; default is fine.
-
 ## Cleanup
 
 ```bash
 kubectl delete -f dynamic-storage-deployment.yaml -f dynamic-pvc.yaml
 ```
+
+## CKAD Tips
+
+- PVC is **namespaced**; PV is **cluster-scoped**.
+- Omit `storageClassName` to use the default class; set `storageClassName: ""` to disable dynamic provisioning (static binding only).
+- `volumeMode: Filesystem` (default) vs `Block` — rarely tested; default is fine.
 
 ## Key Takeaway
 

@@ -158,3 +158,15 @@ kubectl delete namespace kubernetes-dashboard
 helm uninstall headlamp --namespace headlamp
 kubectl delete namespace headlamp
 ```
+
+## CKAD Note
+
+Installing web UIs (Kubernetes Dashboard, Headlamp) via Helm is real-world tooling and is **not** examinable, but several `kubectl` patterns used here *are* squarely in scope.
+
+- Exporting live resources with `kubectl get all,sa,secret,configmap,role,rolebinding,... -o yaml` is a genuine CKAD skill — practice `-o yaml` and multi-resource `get` queries.
+- Creating short-lived credentials with `kubectl create token <sa> -n <ns>`, and the `ServiceAccount` + `ClusterRoleBinding` RBAC pattern, are examinable.
+- `kubectl port-forward svc/... -n <ns>` to reach a service locally is in-scope; the Dashboard/Headlamp UIs themselves and `helm template` rendering are background only.
+
+## Key Takeaway
+
+The UIs are optional real-world tooling, but this chapter surfaces the truly examinable skills: exporting resources with `kubectl get -o yaml`, minting tokens with `kubectl create token`, wiring RBAC via `ServiceAccount`/`ClusterRoleBinding`, and port-forwarding to a Service.

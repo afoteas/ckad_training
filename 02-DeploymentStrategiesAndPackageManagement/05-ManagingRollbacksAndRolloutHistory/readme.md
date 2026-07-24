@@ -59,3 +59,15 @@ Use revision inspection to identify problematic image tags or config deltas befo
 - gate rollout completion on health and metrics
 - include rollback logic in CI/CD automation
 - document rollback cause to prevent repeat incidents
+
+## CKAD Tips
+
+- Memorize the command set: `kubectl rollout status|history|undo deployment/<name>` plus `--to-revision=<n>`.
+- `kubectl rollout undo deploy <name>` reverts to the previous revision; add `--to-revision=<n>` to target a specific one.
+- Inspect a single revision's pod template with `kubectl rollout history deploy <name> --revision=<n>`.
+- The CHANGE-CAUSE column is populated from the `kubernetes.io/change-cause` annotation — set it to make history readable.
+- Use immutable image tags (never `latest`) so each revision is distinct and rollbacks are predictable.
+
+## Key Takeaway
+
+Every Deployment template change creates a new revision, and `kubectl rollout history`/`undo` let you inspect that audit trail and instantly revert to a known-good state.

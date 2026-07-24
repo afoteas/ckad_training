@@ -84,3 +84,15 @@ Different pods will show different indices and corresponding chunk ranges.
 - **Deterministic work distribution**: Pod N always processes the same chunk range
 - **Parallelism without collision**: Each pod knows exactly what to do
 - **Ideal for static, partitioned workloads**: Video processing, data sharding, hyperparameter tuning
+
+## CKAD Tips
+
+- The three fields that make an indexed parallel Job: `completionMode: Indexed`, `completions` (number of indices), and `parallelism` (how many run at once).
+- Reference `$JOB_COMPLETION_INDEX` inside the container's `command`/`args` to compute each pod's slice of the work.
+- With `completionMode: Indexed` you MUST also set `completions`; omitting it is a common mistake.
+- Confirm indices with `kubectl get pods -l job-name=<job> --show-labels` (look for `batch.kubernetes.io/job-completion-index`) and read a pod with `kubectl logs $POD`.
+- `restartPolicy: Never` is used here so each attempt is a fresh pod tied to its index.
+
+## Key Takeaway
+
+An indexed parallel Job hands each pod a stable `JOB_COMPLETION_INDEX`, letting workers deterministically self-assign a slice of the workload (e.g. chunks) without any external queue, while `parallelism` bounds concurrency.

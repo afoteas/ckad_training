@@ -156,6 +156,14 @@ spec:
 5. **Document required syscalls** to justify any exceptions — transparency helps maintain security hygiene.
 6. **Combine with PSA** for layered defense — PSA handles Pod-level rules; seccomp and AppArmor secure kernel-level interactions.
 
+## CKAD Tips
+
+- Know the modern field syntax: `spec.securityContext.seccompProfile.type: RuntimeDefault` — this is what PSA `restricted` requires. Learn the three types: `RuntimeDefault`, `Localhost`, `Unconfined`.
+- `seccompProfile` can sit at Pod level (`spec.securityContext`) or per container; `appArmorProfile` is set per container in `securityContext`.
+- Prefer `securityContext` fields over deprecated annotations — PSA checks the field, not annotations. Legacy AppArmor still uses the annotation `container.apparmor.security.beta.kubernetes.io/<container>`.
+- Use `kubectl explain pod.spec.securityContext.seccompProfile` to recall the schema fast during the exam.
+- On `kind` clusters AppArmor is often not loaded, so those examples may be silently ignored — seccomp works out of the box.
+
 ## Key Takeaway
 
 seccomp filters syscalls; AppArmor restricts file and network access. Use both alongside Pod Security Admission to minimize attack surface while maintaining workload reliability.

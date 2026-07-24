@@ -87,3 +87,14 @@ kubectl delete -f my-pvc.yaml
 ## Summary
 
 PVC-backed Deployments are the core stateful storage pattern in Kubernetes. They provide reliable data continuity even when Pods are recreated.
+
+## CKAD Tips
+
+- Remember the flow: PV (storage) ← PVC (namespaced request) ← Pod/Deployment (`volumes` + `volumeMounts` by `claimName`).
+- Check binding with `kubectl get pvc` (want `Bound`); a `Pending` PVC usually means no default StorageClass — check `kubectl get storageclass`.
+- Set `accessModes` (e.g. `ReadWriteOnce`) and `resources.requests.storage` on the PVC.
+- Diagnose with `kubectl describe pvc <name>`, and prove persistence by deleting the Pod and confirming data survives recreation.
+
+## Key Takeaway
+
+A PVC decouples data from the Pod lifecycle — mount it by claim name so application state survives Pod recreation.

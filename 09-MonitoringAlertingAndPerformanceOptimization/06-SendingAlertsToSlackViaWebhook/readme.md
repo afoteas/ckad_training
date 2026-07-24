@@ -62,3 +62,15 @@ kubectl port-forward svc/monitoring-kube-prometheus-alertmanager 9093:9093 -n mo
 ```
 
 Open `http://localhost:9093` to inspect alert state.
+
+## CKAD Note
+
+Wiring Alertmanager to Slack via a webhook is real-world integration work and is **not** examinable. The reusable CKAD skills hide inside the mechanics of this demo, not the Slack pipeline.
+
+- Storing sensitive config (a webhook URL) in a `Secret` rather than a `ConfigMap` is a core exam concept.
+- Forcing a pod to reload config by `kubectl delete pod <name> -n monitoring` and confirming the restart with `kubectl get pods -n monitoring` are genuine exam techniques.
+- `kubectl port-forward svc/... 9093:9093 -n monitoring` to reach a service locally is in-scope; the PromQL alert rule and Slack routing are background only.
+
+## Key Takeaway
+
+Routing alerts to Slack is production integration, but the transferable CKAD lessons are using a `Secret` for sensitive data, restarting a pod to pick up new config, and port-forwarding to a Service — not the alert pipeline itself.

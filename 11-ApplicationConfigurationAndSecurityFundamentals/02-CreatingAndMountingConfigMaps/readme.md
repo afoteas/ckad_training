@@ -137,3 +137,16 @@ That makes ConfigMaps very practical for real applications where some values are
 kubectl delete -f app-configmap-deployment.yaml
 kubectl delete -f my-configmap.yaml
 ```
+
+## CKAD Tips
+
+- Inject one key with `env.valueFrom.configMapKeyRef`; inject the whole ConfigMap at once with `envFrom.configMapRef`.
+- Mount as files with a `volumes[].configMap` entry plus a matching `volumeMounts` — each key becomes a filename under the mount path.
+- Use `items` under the configMap volume to project only selected keys or rename them via `path`.
+- A `subPath` mount does NOT auto-update when the ConfigMap changes; plain volume mounts refresh (~60s).
+- Verify fast: `kubectl exec <pod> -- env` for env vars and `kubectl exec <pod> -- cat /etc/config/<file>` for mounted files.
+- Generate a ConfigMap manifest quickly with `kubectl create configmap app-settings --from-file=... --dry-run=client -o yaml`.
+
+## Key Takeaway
+
+A single ConfigMap can be consumed at the same time as environment variables and as mounted files, letting one workload mix simple scalar toggles with full multiline config files — all without rebuilding the container image.

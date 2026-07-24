@@ -68,3 +68,15 @@ spec:
 ```
 
 This creates three ordered pods (`mysql-0`, `mysql-1`, `mysql-2`) under one StatefulSet controller.
+
+## CKAD Tips
+
+- There is no `kubectl create statefulset` generator — scaffold from a Deployment YAML, then change `kind`, and add `serviceName` and `volumeClaimTemplates`.
+- A StatefulSet needs a headless Service (`clusterIP: None`) referenced by `serviceName` for stable per-pod DNS (`<pod>.<service>`).
+- Scale in ordinal order with `kubectl scale statefulset <name> --replicas=N`; pods are created/removed lowest-to-highest / highest-to-lowest.
+- `podManagementPolicy` defaults to `OrderedReady`; use `Parallel` only when startup order does not matter.
+- Deleting a StatefulSet leaves its PVCs behind — remove them explicitly with `kubectl delete pvc <name>`.
+
+## Key Takeaway
+
+Reach for a StatefulSet when a workload needs stable network identity, sticky per-pod storage, and ordered lifecycle; ordinals (`app-0`, `app-1`) guarantee each pod keeps its name and its own volume across restarts.

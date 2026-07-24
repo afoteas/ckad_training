@@ -119,3 +119,16 @@ Without profiling, developers over-provision. With the full workflow:
 - use cAdvisor data to find the 95th percentile CPU and memory over a representative period
 - set `resources.requests` to the typical usage and `resources.limits` slightly above the spike value
 - re-evaluate after the next deployment
+
+## CKAD Tips
+
+- `kubectl top pod` and `kubectl top node` are directly examinable — memorize them as the first step when diagnosing slowness or resource pressure.
+- `kubectl top` needs the **Metrics Server**; if you see `error: Metrics API not available` or `no metrics available`, the server is missing or still warming up (wait ~30s and retry).
+- Scope and sort output with flags: `kubectl top pod -n <ns>`, `kubectl top pod --all-namespaces`, `kubectl top pod --containers`, and `kubectl top pod --sort-by=cpu` (or `memory`).
+- `kubectl top` shows a **live snapshot only** — there is no history; pair it with `kubectl describe` and `kubectl get events` to correlate with restarts and OOMKills.
+- cAdvisor, kube-state-metrics, and PromQL are background/real-world context — not tested; do not spend exam time on them.
+- Use profiling insight to right-size `resources.requests`/`resources.limits`, which is a core, examinable pod-spec skill.
+
+## Key Takeaway
+
+`kubectl top pod`/`kubectl top node` (backed by the Metrics Server) is the fast, exam-ready way to snapshot CPU and memory usage — the go-to first command for diagnosing resource problems, while cAdvisor and kube-state-metrics remain useful background rather than exam material.

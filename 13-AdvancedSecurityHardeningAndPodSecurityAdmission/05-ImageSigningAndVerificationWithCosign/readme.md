@@ -287,6 +287,14 @@ For a hands-on webhook setup, see [06-VerifyingImageSignaturesViaImagePolicyWebh
 - The image must be **pushed before signing** — Cosign signs the digest in the registry, not a local-only image.
 - Test compatibility before enforcing in production — combine signing with admission policies for end-to-end supply chain security.
 
+## CKAD Note
+
+Cosign/Sigstore image signing (`cosign sign`, `cosign verify`, keyless OIDC, Rekor) is real-world supply-chain tooling and is **not on the CKAD exam** — treat this chapter as background.
+
+- **Examinable and adjacent:** choosing trusted base images, referencing images by digest, and configuring `imagePullSecrets` for private registries.
+- **Beyond scope (background here):** generating key pairs, `cosign sign/verify`, keyless signing with OIDC/Fulcio, and Rekor transparency logs.
+- The exam-relevant idea to retain is that admission control can gate images at the cluster — the in-scope version of that is Pod Security Admission (chapters 01–02), not signature webhooks.
+
 ## Key Takeaway
 
 Cosign brings cryptographic trust to the container lifecycle. Sign in CI/CD, verify at the cluster gate, and block anything that doesn't pass — the most impactful step for supply chain security.

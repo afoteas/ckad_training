@@ -121,3 +121,15 @@ Kustomize reduces YAML duplication by separating common manifests (base) from en
 
 Kustomize is native configuration overlay tooling. It is not a package manager with chart repositories or release history like Helm.
 
+## CKAD Tips
+
+- Kustomize is built into kubectl: render with `kubectl kustomize <dir>` and apply with `kubectl apply -k <dir>`.
+- Always render before applying so you can verify the merged output.
+- Know the common overlay fields: `namespace`, `namePrefix`/`nameSuffix`, `commonLabels`, `images`, `replicas`, and `patches`.
+- Overlays reference the base via `resources: - ../../base`; a wrong relative path is the most common failure.
+- Never edit the base for a one-off environment change — put the delta in the overlay.
+
+## Key Takeaway
+
+Kustomize keeps a single base of manifests and layers environment-specific overlays on top, applied natively with `kubectl -k` — no templating language or chart repositories required.
+

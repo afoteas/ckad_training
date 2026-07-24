@@ -220,3 +220,15 @@ kubectl config delete-context ckad-mini
 - Use kind for fast, disposable, CI-like clusters and multi-node experiments.
 - Use minikube when you want easy addons such as ingress and metrics-server.
 - Keep both installed: choose by context based on each lab objective.
+
+## CKAD Note
+
+Choosing and installing a local cluster (kind vs minikube, Docker Engine in WSL2) is environment setup and is **not** CKAD exam content — the exam hands you a cluster and a working `kubectl`.
+
+- The one genuinely transferable exam skill here is context hygiene: `kubectl config get-contexts`, `kubectl config use-context`, and confirming `kubectl config current-context` before every `apply`.
+- Exam clusters can span multiple namespaces, so always verify the target (`kubectl get ns`) before acting.
+- The minikube addons shown (`ingress`, `metrics-server`) provision things you *are* tested on (Ingress, `kubectl top`, HPA); the `minikube addons enable` commands themselves are not examinable.
+
+## Key Takeaway
+
+Pick kind for fast disposable/CI clusters and minikube for batteries-included addons, but for CKAD the only lasting skill is safely switching and verifying `kubectl` contexts before running commands.

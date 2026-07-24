@@ -55,3 +55,15 @@ spec:
 - store credentials in Kubernetes secrets, not plain manifests
 - validate registry connectivity from cluster nodes
 - pre-pull critical images when appropriate
+
+## CKAD Tips
+
+- Create registry credentials imperatively: `kubectl create secret docker-registry <name> --docker-server=... --docker-username=... --docker-password=...` — memorize the flag names, they're easy to fumble under time pressure.
+- Reference the secret via `imagePullSecrets` at the pod `spec` level (a sibling of `containers`), not inside a container.
+- Confirm the failure reason with `kubectl describe pod <pod>` and `kubectl get events --sort-by='.lastTimestamp'`; the message text distinguishes a bad tag from an auth failure.
+- `kubectl logs <pod> --previous` helps only after the container has started — an image that never pulls produces no logs, so rely on `describe`/events instead.
+- Prefer explicit image tags over `latest` so retries pull a deterministic image.
+
+## Key Takeaway
+
+`ImagePullBackOff` means the kubelet cannot fetch the image; diagnose via `describe`/events and fix the root cause — corrected image/tag, or a `docker-registry` secret wired in through `imagePullSecrets`.

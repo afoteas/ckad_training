@@ -85,3 +85,15 @@ spec:
 - set `failedJobsHistoryLimit` higher than successful to aid debugging
 - use `startingDeadlineSeconds` to avoid cascading retries if the controller is down
 - always test the cron schedule expression before deploying to production
+
+## CKAD Tips
+
+- Scaffold a CronJob imperatively: `kubectl create cronjob backup --image=busybox --schedule="*/5 * * * *" -- /bin/sh -c "date"`, then tweak the YAML.
+- Memorize the 5 cron fields (`minute hour day-of-month month day-of-week`) and common patterns like `0 0 * * *` (daily midnight) and `*/10 * * * *` (every 10 min).
+- `concurrencyPolicy` values: `Allow` (default), `Forbid` (skip if one is running), `Replace` (kill running, start new).
+- The pod template lives under `spec.jobTemplate.spec.template.spec` — note the extra `jobTemplate` nesting versus a plain Job.
+- Trigger an ad-hoc run from a CronJob with `kubectl create job --from=cronjob/<name> <manual-run>`.
+
+## Key Takeaway
+
+A CronJob wraps the Job resource to run tasks on a cron schedule, and `concurrencyPolicy` (`Allow`/`Forbid`/`Replace`) plus the history-limit fields control how overlapping runs and completed Jobs are handled.

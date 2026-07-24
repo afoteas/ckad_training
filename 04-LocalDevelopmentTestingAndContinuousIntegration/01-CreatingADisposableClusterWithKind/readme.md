@@ -55,3 +55,15 @@ kind create cluster --config kind-multi-node-config.yaml --name multi-node
 - **Lightweight**: Runs in Docker containers
 - **Portable**: Works on Linux, macOS, and Windows (with Docker)
 - **Clean**: Easy cluster cleanup without VM overhead
+
+## CKAD Note
+
+`kind` is developer/CI tooling and is **not** part of the CKAD exam — the exam gives you a ready cluster that you drive entirely through `kubectl`.
+
+- No exam task asks you to run `kind create cluster` or author a `kind-multi-node-config.yaml`.
+- What *is* examinable are the objects you create inside a cluster: Pods, Deployments, Services, and `NodePort` access (the reason for the control-plane port mapping here).
+- The worker-node zone labels used here matter on the exam only through `nodeSelector`, node affinity, and topology spread constraints on Pods.
+
+## Key Takeaway
+
+`kind` gives you a fast, disposable, Docker-based Kubernetes cluster for local practice and CI, but on the CKAD exam it stays invisible — you only need to be fluent with `kubectl` against whatever cluster is provided.

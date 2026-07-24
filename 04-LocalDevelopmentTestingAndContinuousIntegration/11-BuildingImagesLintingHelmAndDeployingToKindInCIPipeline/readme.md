@@ -232,3 +232,15 @@ helm rollback my-app <REVISION> -n demo
 ## Summary
 
 This CI/CD pattern combines Buildx multi-arch builds, Helm quality gates, and Kubernetes deployment verification in a deterministic flow. It catches problems early, improves deployment confidence, and supports safer production promotion.
+
+## CKAD Note
+
+This end-to-end GitHub Actions pipeline (Buildx multi-arch builds, registry push, Helm gates, environment approvals) is DevOps/CI-CD content and is **not** CKAD material.
+
+- Not examinable: `docker buildx`, GitHub Environments, image caching, and promotion/approval flows.
+- Examinable pieces embedded here: `helm upgrade --install`, `helm template`, `kubectl apply --dry-run=server`, `kubectl rollout status`, and reading diagnostics with `kubectl get events`/`kubectl logs`.
+- `helm rollback` and `kubectl rollout undo` are the recovery skills worth knowing for the exam.
+
+## Key Takeaway
+
+A production pipeline fails fast with lint/test/build gates and only promotes verified images, but for CKAD extract just the `kubectl`/`helm` deploy-verify-rollback commands — the CI orchestration around them is out of scope.

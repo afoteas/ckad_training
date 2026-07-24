@@ -61,3 +61,15 @@ If you keep pushing directly to `main`, updates are automatic but no human appro
 - Block mutable tags like latest in production.
 - Require status checks before merge.
 - Include changelog or release notes in automated PR body.
+
+## CKAD Note
+
+Flux image automation (`ImageRepository`, `ImagePolicy`, `ImageUpdateAutomation` CRDs, the `image-reflector`/`image-automation` controllers, and PR-based approval) is **not** on the CKAD exam — it is advanced GitOps tooling.
+
+- The examinable core underneath it is simply updating a workload's image: `kubectl set image deployment/<name> <container>=<image>:<tag>` and editing the `image:` field in the manifest.
+- Semantic-version selection and "block mutable tags like `latest`" reinforce the in-scope good practice of pinning explicit image tags/digests in Deployment specs.
+- `flux install --components=...` and the image CRDs are background; on the exam you manage image changes and rollouts directly with `kubectl` and confirm with `kubectl rollout status`.
+
+## Key Takeaway
+
+Flux image automation scans a registry, picks allowed tags, and commits manifest updates for PR approval; for CKAD you only need to update and pin container images yourself with `kubectl set image` (or an edited manifest) and verify the rollout — the automation pipeline is beyond exam scope.

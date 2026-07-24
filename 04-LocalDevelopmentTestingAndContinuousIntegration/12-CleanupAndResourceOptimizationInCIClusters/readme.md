@@ -274,3 +274,15 @@ Reliable Kubernetes CI depends on two disciplines:
 2. intentional resource optimization
 
 Together they shorten feedback cycles, lower infra cost, and improve test reliability.
+
+## CKAD Note
+
+The CI-cluster framing (kind/minikube teardown, Buildx/dependency caching, runner cost tuning) is real-world DevOps, but several building blocks used here **are** core CKAD.
+
+- Examinable: setting `resources.requests`/`limits`, `kubectl delete namespace`, label-based bulk delete (`kubectl delete ns -l ci-run=true`), and Job `ttlSecondsAfterFinished` for auto-cleanup.
+- Also examinable: diagnostics via `kubectl get events --sort-by=.lastTimestamp`, `kubectl describe`, and `kubectl logs`, plus `--ignore-not-found` for idempotent deletes.
+- Not examinable: GitHub Actions caching (`cache-from`/`cache-to`), `helm/kind-action`, and CI cost/trend monitoring.
+
+## Key Takeaway
+
+Reliable CI needs strict cleanup plus resource optimization, and while the pipeline tooling is out of scope, the underlying Kubernetes primitives — requests/limits, namespace deletion, and Job TTL — are squarely on the CKAD exam.

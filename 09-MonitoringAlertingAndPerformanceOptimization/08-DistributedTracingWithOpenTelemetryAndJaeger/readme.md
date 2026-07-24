@@ -62,3 +62,14 @@ Each row is a **span**. The total is the sum of the critical path.
 - trace volume is enormous (one entry per request); implement **sampling** (e.g., 1 in 100 requests) to control storage costs
 - Jaeger must be sized for the retention period and expected throughput
 - tracing complements, not replaces, metrics and logs — all three are needed for full observability
+
+## CKAD Note
+
+Distributed tracing with OpenTelemetry and Jaeger is real-world observability tooling and is **not** on the CKAD exam. Spans, trace IDs, OTLP, collectors, and sampling are all background concepts.
+
+- Understand conceptually that traces answer *why* a request is slow (metrics say *what*, logs say *where*), but you won't deploy or query Jaeger on the exam.
+- For exam-level troubleshooting, stay with `kubectl logs`, `kubectl describe`, `kubectl get events`, and `kubectl top` rather than traces.
+
+## Key Takeaway
+
+OpenTelemetry standardizes telemetry generation and Jaeger visualizes traces as span waterfalls to pinpoint latency across services — a valuable production capability, but background knowledge only for CKAD, which relies on core `kubectl` inspection.

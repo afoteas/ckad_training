@@ -91,7 +91,14 @@ These steps generate:
 
 For local development, the workflow then installs the CRD and runs the controller process for debugging.
 
-## Key Takeaways
+## CKAD Note
+
+- Kubebuilder/Operator SDK scaffolding, `make manifests`/`make generate`, and writing `_types.go` and reconcile code are **well beyond CKAD scope** — no operator development is tested.
+- The only exam-relevant residue is the output: generated CRD YAML and RBAC manifests are ordinary objects you apply and inspect with `kubectl apply -f` and `kubectl get crds`.
+- Spec vs status as the "contract" mirrors the `.spec`/`.status` split you already work with on native resources.
+- Skip the tooling install steps for exam prep; concentrate on managing the resulting resources declaratively.
+
+## Key Takeaway
 
 - scaffolding saves time by generating the standard controller project layout
 - spec and status types define the contract for your operator

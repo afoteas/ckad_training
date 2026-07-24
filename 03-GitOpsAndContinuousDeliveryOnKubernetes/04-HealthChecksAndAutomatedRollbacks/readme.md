@@ -87,3 +87,15 @@ kubectl -n argocd get application ckad-sample -o yaml | grep -A8 "syncPolicy"
 
 - In Argo CD, `retry.limit` belongs to the Application spec, not Helm values.
 - Keep `server.insecure: true` only for local/dev environments.
+
+## CKAD Tips
+
+- Probes are heavily examinable: know `readinessProbe` (gates traffic/endpoint membership), `livenessProbe` (restarts a wedged container), and `startupProbe` (protects slow starters) under `spec.containers[].`.
+- Memorize the three handler types — `httpGet`, `tcpSocket`, and `exec` — plus the timing fields `initialDelaySeconds`, `periodSeconds`, `timeoutSeconds`, `failureThreshold`, and `successThreshold`.
+- Diagnose probe failures fast: `kubectl describe pod` shows probe events/reasons, and `kubectl get pod -w` reveals restart counts from failing liveness checks.
+- For rollout/rollback of native Deployments (the exam's version of "rollback"): `kubectl rollout status`, `kubectl rollout history`, and `kubectl rollout undo deploy/<name> [--to-revision=N]`.
+- The Argo CD Helm upgrade and `Application` `retry.limit`/`syncPolicy` details are not on the exam — focus your time on the probe YAML and `kubectl rollout` commands.
+
+## Key Takeaway
+
+Safe delivery still depends on well-configured readiness, liveness, and startup probes plus a clear known-good revision to roll back to; for CKAD, master the probe fields and `kubectl rollout undo` rather than the Argo CD-specific automation shown here.

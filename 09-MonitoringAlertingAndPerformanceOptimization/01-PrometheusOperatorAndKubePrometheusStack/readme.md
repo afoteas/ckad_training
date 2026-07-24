@@ -51,3 +51,14 @@ Without the operator, upgrades require careful planning, manual configuration ch
 - CRDs are cluster-scoped; their addition is a security and governance decision for cluster administrators
 - Alertmanager and Grafana endpoints expose sensitive information — secure them with Ingress, NetworkPolicies, or RBAC
 - the operator simplifies deployment but does not automatically secure monitoring data and access
+
+## CKAD Note
+
+The Prometheus Operator, `kube-prometheus-stack`, and CRDs like `ServiceMonitor`, `PodMonitor`, and `PrometheusRule` are real-world/background tooling and are **not** on the CKAD exam. What the exam actually tests around observability is basic in-cluster inspection: `kubectl top pod/node`, `kubectl logs`, `kubectl describe`, and reading events.
+
+- Know that operators extend the API with CRDs, but you won't author `ServiceMonitor`/`PrometheusRule` manifests on the exam.
+- Focus your practice on `kubectl top` (see `07-ProfilingWithKubectlTopCAdvisorAndKubeStateMetrics`) and reading resource state, not on PromQL or scrape configs.
+
+## Key Takeaway
+
+The Prometheus Operator turns the entire monitoring stack into declarative CRDs so Prometheus, Alertmanager, and Grafana can be managed like native Kubernetes objects — powerful for production, but background context rather than exam material for CKAD.

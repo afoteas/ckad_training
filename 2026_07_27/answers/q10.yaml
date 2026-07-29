@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+  namespace: ckad-batch
+spec:
+  template:
+    metadata:
+      labels:
+        app: pi
+    spec:
+      containers:
+      - command:
+        - perl
+        - -Mbignum=bpi
+        - -wle
+        - print bpi(200)
+        image: perl:5.34
+        name: pi
+      restartPolicy: Never

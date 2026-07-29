@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: heartbeat
+  namespace: ckad-batch
+spec:
+  jobTemplate:
+    metadata:
+      name: heartbeat
+    spec:
+      template:
+        metadata:
+          labels:
+            app: heartbeat
+        spec:
+          containers:
+          - command:
+            - sh
+            - -c
+            - date; echo alive
+            image: busybox:1.36
+            name: heartbeat
+          restartPolicy: OnFailure
+  schedule: '*/5 * * * *'

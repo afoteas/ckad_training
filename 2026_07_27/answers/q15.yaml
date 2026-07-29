@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc
+  namespace: ckad-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: storage-pod
+  name: storage-pod
+  namespace: ckad-storage
+spec:
+  containers:
+  - image: nginx:1.25
+    name: storage-pod
+    volumeMounts:
+    - name: data-volume
+      mountPath: /usr/share/nginx/
+  volumes:
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: data-pvc
+  restartPolicy: Never

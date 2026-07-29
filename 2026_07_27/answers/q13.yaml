@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: reader-sa
+  namespace: ckad-rbac
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: ckad-rbac
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: ckad-rbac
+subjects:
+- kind: ServiceAccount
+  name: reader-sa
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: ""
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rbac-pod
+  namespace: ckad-rbac
+spec:
+  containers:
+  - image: nginx:1.25
+    name: nginx
+  restartPolicy: Never
+  serviceAccountName: reader-sa

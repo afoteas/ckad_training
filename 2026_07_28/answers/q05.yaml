@@ -1,0 +1,37 @@
+apiVersion: v1
+data:
+  API_KEY: YWJjMTIz
+  API_USER: YWRtaW4=
+kind: Secret
+metadata:
+  name: api-creds
+  namespace: app-config
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: env-app
+  name: env-app
+  namespace: app-config
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: env-app
+  template:
+    metadata:
+      labels:
+        app: env-app
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - sleep 3600
+        image: busybox:1.36
+        name: busybox
+        envFrom:
+        - secretRef:
+            name: api-creds

@@ -1,0 +1,2 @@
+probed-6d4478b675-5mhcd
+kubectl get pods -n ckad-health -o wide

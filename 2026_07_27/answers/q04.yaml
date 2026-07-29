@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: frontend
+  name: frontend-nodeport
+  namespace: ckad-web
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30081
+  selector:
+    app: frontend
+  type: NodePort

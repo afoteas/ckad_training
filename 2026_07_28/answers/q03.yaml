@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: init-demo
+  name: init-demo
+  namespace: app-deploy
+spec:
+  initContainers:
+    - image: busybox:1.36
+      name: setup
+      volumeMounts:
+        - name: work
+          mountPath: "/work"
+      command: ["sh", "-c", "echo ready > /work/status"]
+  containers:
+    - image: busybox:1.36
+      name: app
+      command: ["sh", "-c", "cat /work/status && sleep 3600"]
+      volumeMounts:
+        - name: work
+          mountPath: "/work"
+  volumes:
+    - name: work
+      emptyDir: {}
+  restartPolicy: Never

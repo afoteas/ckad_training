@@ -1,0 +1,35 @@
+apiVersion: v1
+data:
+  password: UzNjcjN0IQ==
+kind: Secret
+metadata:
+  name: db-secret
+  namespace: ckad-config
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: secret-reader
+  name: secret-reader
+  namespace: ckad-config
+spec:
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: db-secret
+  containers:
+  - command:
+    - sh
+    - -c
+    - sleep 3600
+    image: busybox:1.36
+    name: secret-reader
+    volumeMounts:
+      - name: secret-volume
+        mountPath: /etc/db
+        readOnly: true
+  restartPolicy: Never
+
+          

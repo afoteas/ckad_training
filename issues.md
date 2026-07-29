@@ -537,3 +537,50 @@ curl --noproxy demo.kube.com http://demo.kube.com:8080
 - Symptom of the `Local` policy issue: `curl` to `:8080` **connects** but **times out**
   with 0 bytes received; `docker exec ckad-control-plane curl -H "Host: demo.kube.com"
   http://127.0.0.1:30080` still returns 200.
+
+## Cleaning up the cluster between practice runs
+
+### Issue
+
+After practice sessions the cluster accumulates leftover objects (Deployments, Services,
+ConfigMaps, Secrets, PVCs, etc.) that interfere with the next run or make `kubectl get`
+output noisy.
+
+### Applied Solution
+
+Options from targeted to nuclear:
+
+1. **Wipe everything in the `default` namespace only:**
+
+   ```bash
+   kubectl delete all --all -n default
+   kubectl delete configmap,secret,pvc,ingress,networkpolicy,sa --all -n default
+   ```
+
+   `all` covers pods, deployments, replicasets, statefulsets, daemonsets, services, jobs,
+   cronjobs. It does **not** cover ConfigMaps, Secrets, PVCs, Ingress, NetworkPolicies, or
+   ServiceAccounts — hence the second command.
+
+2. **Delete specific practice namespaces** (removes everything inside them):
+
+   ```bash
+   kubectl delete namespace ckad-web ckad-config ckad-health ckad-batch \
+     ckad-design ckad-rbac ckad-netpol ckad-storage
+   ```
+
+3. **Fully reset the cluster** (guaranteed clean — also wipes CNI, ingress, all namespaces):
+
+   ```bash
+   kind delete cluster --name ckad
+   kind create cluster --name ckad --config <kind-config.yaml>
+   ```
+
+### Notes
+
+- The default `kubernetes` Service and the `default` ServiceAccount are recreated
+  automatically after deletion — do not worry about removing them.
+- Avoid `kubectl delete all --all --all-namespaces`: it also targets `kube-system`
+  workloads (CoreDNS, kindnet), briefly breaking cluster networking. Scope to your own
+  namespaces instead.
+- For a totally fresh slate before a timed mock exam, recreating the kind cluster
+  (option 3) is the most reliable — no leftover CRDs, RBAC, or webhooks.

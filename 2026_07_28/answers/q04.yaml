@@ -1,0 +1,29 @@
+apiVersion: v1
+data:
+  index.html: Hello CKAD
+  mode: prod
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: app-config
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: cm-volume
+  name: cm-volume
+  namespace: app-config
+spec:
+  containers:
+  - image: nginx:1.25
+    name: cm-volume
+    volumeMounts:
+      - name: config-vol
+        mountPath: /etc/web
+  volumes:
+    - name: config-vol
+      configMap:
+        name: web-config
+  restartPolicy: Never

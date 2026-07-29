@@ -584,3 +584,54 @@ Options from targeted to nuclear:
   namespaces instead.
 - For a totally fresh slate before a timed mock exam, recreating the kind cluster
   (option 3) is the most reliable — no leftover CRDs, RBAC, or webhooks.
+
+## git push fails: SSH blocked, need HTTPS + PAT
+
+### Issue
+
+`git push` over SSH fails on the restricted network. Port 22 is refused
+(`connect to host github.com port 22: Connection refused`) and SSH-over-443
+(`ssh.github.com:443`) is reset mid-handshake
+(`kex_exchange_identification: read: Connection reset by peer`). A TLS-inspecting
+proxy on the network permits only genuine HTTPS on 443 and kills tunnelled SSH, so
+SSH cannot be used from this machine/policy.
+
+### Applied Solution
+
+Switch the remote to HTTPS and authenticate with a GitHub Personal Access Token (PAT).
+
+1. **Create the PAT on GitHub** — Settings → Developer settings → Personal access tokens:
+   - **Classic**: *Tokens (classic)* → *Generate new token (classic)* → check the **`repo`**
+     scope → generate → copy it (starts with `ghp_...`).
+   - **Fine-grained** (alternative): select the repo, set *Repository permissions →
+     Contents: Read and write*. Copy the token (`github_pat_...`). You only see it once.
+
+2. **Use the PAT at the push prompt** — paste the token as the *password* (not your
+   account password); the paste is invisible in the terminal, which is normal:
+
+   ```bash
+   git remote set-url origin https://github.com/afoteas/<repo>.git
+   git push --set-upstream origin main
+   # Username: afoteas
+   # Password: <paste the PAT>
+   ```
+
+3. **Save it so future pushes don't prompt:**
+
+   ```bash
+   git config --global credential.helper store          # persists to ~/.git-credentials
+   # or, temporary in-memory cache:
+   git config --global credential.helper 'cache --timeout=3600'
+   ```
+
+### Notes
+
+- The tell for a TLS-inspection proxy is a **reset during `kex_exchange_identification`**
+  on port 443 (TCP connects, then dies) versus a plain `Connection refused` on port 22.
+- If HTTPS then throws an SSL cert error, trust the proxy's root CA (same Zscaler cert
+  used elsewhere): `git config --global http.sslCAInfo /path/to/zscaler-root-ca.pem`.
+  Use `http.sslVerify false` only as a last-resort temporary workaround.
+- `gh auth login` (GitHub CLI) sets up the HTTPS credential helper automatically and
+  avoids copying the PAT by hand.
+- Switching WiFi may appear to "fix" SSH temporarily, but once the endpoint/proxy policy
+  syncs, both networks block it — HTTPS + PAT is the durable fix.

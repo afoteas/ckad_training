@@ -26,6 +26,7 @@ if [[ "${1:-}" == "--reset" ]]; then
   for ns in "${NAMESPACES[@]}"; do
     kubectl wait --for=delete "namespace/$ns" --timeout=90s 2>/dev/null || true
   done
+  exit 0
 fi
 
 echo ">> Creating namespaces..."

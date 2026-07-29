@@ -1,0 +1,3 @@
+pod-name-here
+kubectl -n exam-health logs <pod> --previous
+kubectl -n exam-health top pod <pod>

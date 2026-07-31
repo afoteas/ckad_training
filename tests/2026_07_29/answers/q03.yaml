@@ -1,1 +1,41 @@
-# Q03 — your answer here
+apiVersion: v1
+data:
+  message: hello-team
+kind: ConfigMap
+metadata:
+  name: shared-cfg
+  namespace: exam-config
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: cfg-share
+  name: cfg-share
+  namespace: exam-config
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - cat /data/message && sleep 3600
+    image: busybox:1.36
+    name: reader1
+    volumeMounts:
+      - name: shared
+        mountPath: /data
+  - command:
+    - sh
+    - -c
+    - sleep 3600
+    image: busybox:1.36
+    name: reader2
+    volumeMounts:
+      - name: shared
+        mountPath: /data
+  restartPolicy: Never
+  volumes:
+    - name: shared
+      configMap:
+        name: shared-cfg

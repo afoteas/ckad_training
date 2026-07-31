@@ -1,1 +1,31 @@
-# Q08 — your answer here
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: probed2
+  name: probed2
+  namespace: exam-health
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: probed2
+  template:
+    metadata:
+      labels:
+        app: probed2
+    spec:
+      containers:
+      - image: nginx:1.25
+        name: nginx
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10

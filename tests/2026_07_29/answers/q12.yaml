@@ -1,1 +1,14 @@
-# Q12 — your answer here
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: pinned
+  name: pinned
+  namespace: exam-sched
+spec:
+  containers:
+  - image: nginx:1.25
+    name: pinned
+  restartPolicy: Never
+  nodeSelector:
+    disktype: ssd

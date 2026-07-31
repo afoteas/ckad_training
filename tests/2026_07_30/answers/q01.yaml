@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: weblog
+  namespace: build
+spec:
+  initContainers:
+  - command:
+    - sh
+    - -c
+    - "touch /var/log/app/access.log && tail -F /var/log/app/access.log"
+    image: busybox:1.36
+    name: sidecar
+    restartPolicy: Always
+    volumeMounts:
+      - mountPath: /var/log/app
+        name: varlog
+  containers:
+  - command:
+    - sh
+    - -c
+    - while true; do date >> /var/log/app/access.log; sleep 2; done
+    image: busybox:1.36
+    name: writer
+    volumeMounts:
+      - mountPath: /var/log/app
+        name: varlog
+  restartPolicy: Never
+  volumes:
+    - name: varlog
+      emptyDir: {}

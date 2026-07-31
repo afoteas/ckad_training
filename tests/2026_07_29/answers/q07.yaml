@@ -1,1 +1,13 @@
-# Q07 — your answer here
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-quota
+  namespace: exam-quota
+spec:
+  hard:
+    limits.cpu: "2"
+    limits.memory: 2Gi
+    pods: "5"
+    requests.cpu: "1"
+    requests.memory: 1Gi
+status: {}

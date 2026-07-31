@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: site
+  namespace: net
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "site.example.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/shop"
+        backend:
+          service:
+            name: shop
+            port:
+              number: 80
+      - pathType: Prefix
+        path: "/blog"
+        backend:
+          service:
+            name: blog
+            port:
+              number: 80

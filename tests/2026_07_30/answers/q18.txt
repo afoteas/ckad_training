@@ -1,0 +1,5 @@
+k logs crasher --previous
+unable to retrieve container logs for containerd://6fa8ef8f33271194a1294288cac9b7efa609ea414c5c203d5d85139bd02e862e
+k events pod crasher
+k events --for pod/crasher -n obse
+rve

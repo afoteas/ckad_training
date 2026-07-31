@@ -1,13 +1,14 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: nightly
-  namespace: exam-batch
+  name: report
+  namespace: build
 spec:
-  suspend: true
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
   jobTemplate:
     metadata:
-      name: nightly
+      name: report
     spec:
       template:
         spec:
@@ -15,8 +16,8 @@ spec:
           - command:
             - sh
             - -c
-            - echo nightly run
+            - echo report
             image: busybox:1.36
-            name: nightly
+            name: report
           restartPolicy: OnFailure
-  schedule: 0 0 * * *
+  schedule: '*/5 * * * *'

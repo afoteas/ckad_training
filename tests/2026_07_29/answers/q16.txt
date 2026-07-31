@@ -1,3 +1,7 @@
-pod-name-here
-kubectl -n exam-health logs <pod> --previous
-kubectl -n exam-health top pod <pod>
+probed2-68687f7579-dqwr4   1/1     Running   0          135m
+
+kubectl  logs probed2-68687f7579-dqwr4 -n exam-health --previous
+Error from server (BadRequest): previous terminated container "nginx" in pod "probed2-68687f7579-dqwr4" not found
+
+kubectl -n exam-health top pod probed2-68687f7579-dqwr4
+probed2-68687f7579-dqwr4   1m           11Mi  

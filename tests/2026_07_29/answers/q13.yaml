@@ -1,1 +1,8 @@
-# Q13 — your answer here
+apiVersion: v1
+kind: Service
+metadata:
+  name: ext-db
+  namespace: exam-net
+spec:
+  type: ExternalName
+  externalName: db.example.internal

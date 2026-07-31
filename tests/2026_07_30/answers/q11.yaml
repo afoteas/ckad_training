@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: locked
+  name: locked
+  namespace: secure
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 2000
+    fsGroup: 3000
+
+  containers:
+  - image: busybox:1.36
+    name: locked
+    command: [sh, -c, "sleep 3600"]
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+  restartPolicy: Never

@@ -1,1 +1,37 @@
-# Q01 — your answer here
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: store
+  name: store
+  namespace: exam-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: store
+  template:
+    metadata:
+      labels:
+        app: store
+    spec:
+      containers:
+      - image: nginx:1.25
+        name: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: store
+  name: store-svc
+  namespace: exam-web
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: store

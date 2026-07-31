@@ -1,1 +1,31 @@
-# Q06 — your answer here
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: hardened
+  name: hardened
+  namespace: exam-secure
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+  containers:
+  - image: nginx:1.25
+    name: hardened
+    securityContext:
+      readOnlyRootFilesystem: true 
+    volumeMounts:
+      - mountPath: /tmp
+        name: tmp-data
+      - name: cache
+        mountPath: /var/cache/nginx
+      - name: run
+        mountPath: /var/run
+  restartPolicy: Never
+  volumes:
+  - name: tmp-data
+    emptyDir: {}
+  - name: cache
+    emptyDir: {}
+  - name: run
+    emptyDir: {}

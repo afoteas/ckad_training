@@ -1,1 +1,29 @@
-# Q05 — your answer here
+apiVersion: v1
+data:
+  password: U3VwM3JQQHNz
+kind: Secret
+metadata:
+  name: tls-pw
+  namespace: exam-secure
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: sub-pod
+  name: sub-pod
+  namespace: exam-secure
+spec:
+  containers:
+  - image: nginx:1.25
+    name: sub-pod
+    volumeMounts:
+      - mountPath: /etc/secret/password
+        name: secret-data
+        subPath: password
+        readOnly: true
+  restartPolicy: Never
+  volumes:
+    - name: secret-data
+      secret: 
+        secretName: tls-pw

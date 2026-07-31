@@ -1,1 +1,17 @@
-# Q15 — your answer here
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: web-allow
+  namespace: exam-net
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          team: clients
+    ports:
+      - port: 80
+        protocol: TCP

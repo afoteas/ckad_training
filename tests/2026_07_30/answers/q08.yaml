@@ -1,0 +1,33 @@
+apiVersion: v1
+data:
+  LOG_LEVEL: debug
+  MODE: prod
+kind: ConfigMap
+metadata:
+  name: app-cfg
+  namespace: config
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cfg-consumer
+  namespace: config
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - sleep 3600
+    image: busybox:1.36
+    name: cfg-consumer
+    envFrom:
+      - configMapRef:
+          name: app-cfg
+    volumeMounts:
+      - name: config-volume
+        mountPath: /etc/appcfg
+  restartPolicy: Never
+  volumes:
+    - name: config-volume
+      configMap:
+        name: app-cfg

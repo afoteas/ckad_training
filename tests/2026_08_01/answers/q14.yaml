@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-front
+  namespace: mesh
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - api.shop.internal
+    secretName: shop-tls
+  rules:
+  - host: api.shop.internal
+    http:
+      paths:
+      - path: /v1
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-api
+            port:
+              number: 8080

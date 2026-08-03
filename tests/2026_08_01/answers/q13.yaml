@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: broker
+  name: broker-peers
+  namespace: mesh
+spec:
+  clusterIP: None
+  ports:
+  - port: 9092
+    protocol: TCP
+    targetPort: 9092
+  selector:
+    app: broker
+status:
+  loadBalancer: {}

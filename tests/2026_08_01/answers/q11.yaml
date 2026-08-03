@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: hardened
+  name: hardened
+  namespace: hardened
+spec:
+  volumes:
+    - name: local-vol
+      emptyDir: {}
+  securityContext:
+    runAsUser: 2000
+
+  containers:
+  - args:
+    - sleep
+    - "3600"
+    image: busybox:1.36
+    name: hardened
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
+    volumeMounts:
+      - name: local-vol
+        mountPath: "/tmp/work"
+  restartPolicy: Never

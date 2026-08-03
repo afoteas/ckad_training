@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dualproc
+  namespace: batch
+spec:
+  volumes:
+  - name: procvol
+    emptyDir: {}
+  containers:
+  - command:
+    - sh
+    - -c
+    - while true; do date >> /data/stream.log; sleep 1; done
+    image: busybox:1.36
+    name: writer
+    volumeMounts:
+      - mountPath: /data
+        name: procvol
+  - command:
+    - sh
+    - -c
+    - tail -F /data/stream.log
+    image: busybox:1.36
+    name: forwarder
+    volumeMounts:
+      - mountPath: /data
+        name: procvol
+
+  restartPolicy: Never

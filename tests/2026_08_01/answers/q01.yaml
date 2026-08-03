@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: integrity-gate
+  namespace: batch
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - printf verify-me | md5sum
+    image: busybox:1.36
+    name: integrity-gate
+  restartPolicy: Never

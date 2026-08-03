@@ -1,0 +1,31 @@
+apiVersion: v1
+data:
+  credential: aHVudGVyMg==
+kind: Secret
+metadata:
+  name: vault-token
+  namespace: settings
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: token-consumer
+  namespace: settings
+spec:
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: vault-token 
+  containers:
+    - name: nginx
+      image: nginx:1.25
+      env:
+      - name: VAULT_CRED
+        valueFrom:
+          secretKeyRef:
+            name: vault-token
+            key: credential
+      volumeMounts:
+        - name: secret-volume
+          readOnly: true
+          mountPath: "/var/run/secrets"

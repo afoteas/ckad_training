@@ -1,0 +1,6 @@
+# Line 1: failure reason as Kubernetes reports it
+Reason:       CrashLoopBackOff
+# Line 2: command used to discover it
+k describe pod flapper
+# Then fix the pod live (not recorded here)
+replace exit 1 with sleep 3600

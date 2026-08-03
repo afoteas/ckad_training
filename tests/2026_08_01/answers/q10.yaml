@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auditor
+  namespace: identity
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pod-watcher
+  namespace: identity
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cm-reader
+  namespace: identity
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cm-binding
+  namespace: identity
+subjects:
+- kind: ServiceAccount
+  name: auditor
+  apiGroup: ""
+roleRef:
+  kind: Role 
+  name: cm-reader 
+  apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pw-binding
+  namespace: identity
+subjects:
+- kind: ServiceAccount
+  name: auditor
+  namespace: identity
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: pod-watcher
+  apiGroup: ""
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: auditor-agent
+  namespace: identity
+spec:
+  serviceAccountName: auditor
+  containers:
+  - name: nginx
+    image: nginx:1.25

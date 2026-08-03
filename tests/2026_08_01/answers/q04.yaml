@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: janitor
+  namespace: batch
+spec:
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 20
+  jobTemplate:
+    metadata:
+      name: janitor
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - sh
+            - -c
+            - sleep 3  ; echo janijob finished!
+            image: busybox:1.36
+            name: janitor
+          restartPolicy: OnFailure
+  schedule: '*/5 * * * *'

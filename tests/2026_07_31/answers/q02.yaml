@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: logshipper
+  namespace: workloads
+spec:
+  volumes:
+  - name: shared-vol
+    emptyDir: {}
+  containers:
+  - command:
+    - sh
+    - -c
+    - while true; do date >> /var/log/app/access.log; sleep 1; done
+    image: busybox:1.36
+    name: app
+    volumeMounts:
+    - mountPath:  /var/log/app
+      name: shared-vol
+  - command:
+    - sh
+    - -c
+    - tail -F /var/log/app/access.log
+    image: busybox:1.36
+    name: shipper
+    volumeMounts:
+    - mountPath:  /var/log/app
+      name: shared-vol
+  restartPolicy: Never

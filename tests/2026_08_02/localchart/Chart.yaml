@@ -1,0 +1,6 @@
+apiVersion: v2
+name: localchart
+description: Minimal chart for CKAD Helm upgrade/rollback practice
+type: application
+version: 0.1.0
+appVersion: "1.25"

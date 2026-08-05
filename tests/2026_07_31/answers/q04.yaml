@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup
+  namespace: workloads
+spec:
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 30
+  jobTemplate:
+    metadata:
+      name: cleanup
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - sh
+            - -c
+            - echo cleanup done
+            image: busybox:1.36
+            name: cleanup
+          restartPolicy: OnFailure
+  schedule: "*/10 * * * *"

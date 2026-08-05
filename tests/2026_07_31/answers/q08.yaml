@@ -1,0 +1,36 @@
+apiVersion: v1
+data:
+  region: eu-west
+  verbosity: high
+kind: ConfigMap
+metadata:
+  name: runtime
+  namespace: config
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: envmap
+  name: envmap
+  namespace: config
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - 'echo : region  ; sleep 3600'
+    image: busybox:1.36
+    name: envmap
+    env:
+    - name: LOG_VERBOSITY
+      valueFrom:
+        configMapKeyRef:
+          name: runtime
+          key: verbosity
+    - name: DEPLOY_REGION
+      valueFrom:
+        configMapKeyRef:
+          name: runtime
+          key: region
+  restartPolicy: Never

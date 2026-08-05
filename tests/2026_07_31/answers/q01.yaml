@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: checksum
+  name: checksum
+  namespace: workloads
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - printf ckad | sha256sum
+    image: busybox:1.36
+    name: checksum
+  restartPolicy: Never

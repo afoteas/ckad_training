@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: locked
+  name: locked
+  namespace: platform
+spec:
+  volumes:
+    - name: tmp-dir
+      emptyDir: {}
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - args:
+    - sleep
+    - "3600"
+    image: busybox:1.36
+    name: locked
+    securityContext:
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop: ["ALL"]
+    volumeMounts:
+      - name: tmp-dir
+        mountPath: /tmp
+  restartPolicy: Never

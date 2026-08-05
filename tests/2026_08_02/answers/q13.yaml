@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: external-db
+  name: external-db
+  namespace: edge
+spec:
+  externalName: postgres.vendor.example.com
+  selector:
+    app: external-db
+  type: ExternalName
+status:
+  loadBalancer: {}

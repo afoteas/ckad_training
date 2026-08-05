@@ -1,0 +1,35 @@
+# Q09
+apiVersion: v1
+data:
+  token: YWJjMTIzeHl6
+kind: Secret
+metadata:
+  name: apicreds
+  namespace: config
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: creduser
+  name: creduser
+  namespace: config
+spec:
+  volumes:
+  - name: secret-vol
+    secret:
+      secretName: apicreds
+  containers:
+  - image: nginx:1.25
+    name: creduser
+    env:
+    - name: API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: apicreds
+          key: token
+    volumeMounts:
+    - name: secret-vol
+      mountPath: "/etc/creds"
+      readOnly: true
+  restartPolicy: Never

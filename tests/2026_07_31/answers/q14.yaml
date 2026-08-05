@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: site-tls-ing
+  namespace: net
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - www.example.com
+    secretName: site-tls
+  rules:
+  - host: www.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: secure-site
+            port:
+              number: 80

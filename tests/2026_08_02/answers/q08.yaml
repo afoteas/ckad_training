@@ -1,0 +1,42 @@
+apiVersion: v1
+data:
+  mode: production
+kind: ConfigMap
+metadata:
+  namespace: platform
+  name: app-conf
+---
+apiVersion: v1
+data:
+  token: c2VjcmV0MTIz
+kind: Secret
+metadata:
+  namespace: platform
+  name: app-key
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: projected-vol
+  name: projected-vol
+  namespace: platform
+spec:
+  volumes:
+  - name: projected-vol
+    projected:
+      sources:
+      - secret:
+          name: app-key
+      - configMap:
+          name: app-conf
+  containers:
+  - args:
+    - sleep
+    - "3600"
+    volumeMounts:
+      - name: projected-vol
+        mountPath: /etc/projected
+    image: busybox:1.36
+    name: projected-vol
+  restartPolicy: Never

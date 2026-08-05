@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: fortress
+  name: fortress
+  namespace: secure
+spec:
+  securityContext:
+    runAsUser: 1000
+  volumes:
+    - name: root-dir
+      emptyDir: {}
+  containers:
+  - image: busybox:1.36
+    name: fortress
+    command: ["sleep", "infinity"]
+    volumeMounts:
+    - mountPath: /scratch
+      name: root-dir
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+
+  restartPolicy: Never

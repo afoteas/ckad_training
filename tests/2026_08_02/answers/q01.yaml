@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: edge-agent
+  namespace: agents
+spec:
+  selector:
+    matchLabels:
+      name: edge-agent
+  template:
+    metadata:
+      labels:
+        name: edge-agent
+    spec:
+      nodeSelector:
+        workload: edge
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: exam
+        effect: NoSchedule
+      containers:
+        - name: busybox
+          image: busybox:1.36
+          command: [sh, -c, "sleep infinity"]
+

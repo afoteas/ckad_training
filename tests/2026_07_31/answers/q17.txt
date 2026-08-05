@@ -1,0 +1,3 @@
+Back-off pulling image "nginx:1.25-doesnotexist"
+k describe pod bad-image -n observe
+k set image pod bad-image app=nginx:1.25

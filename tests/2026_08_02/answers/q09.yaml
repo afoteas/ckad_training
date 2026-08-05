@@ -1,0 +1,31 @@
+apiVersion: v1
+data:
+  password: ZGJzZWNyZXQ=
+kind: Secret
+metadata:
+  name: db-pass
+  namespace: platform
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: subpath-mount
+  name: subpath-mount
+  namespace: platform
+spec:
+  volumes:
+    - name: etcdb
+      projected:
+        defaultMode: 444
+        sources:
+          - secret:
+              name: db-pass
+  containers:
+  - image: nginx:1.25
+    name: subpath-mount
+    volumeMounts:
+      - mountPath: /etc/db/password
+        name: etcdb
+        subPath: password
+  restartPolicy: Never

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-peers
+  namespace: agents
+  labels:
+    app: cache
+spec:
+  ports:
+  - port: 6379
+    name: cache
+  clusterIP: None
+  selector:
+    app: cache
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cache
+  namespace: agents
+spec:
+  selector:
+    matchLabels:
+      app: cache
+  serviceName: "cache-peers"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cache
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25
+        ports:
+        - containerPort: 6379
+          name: cache

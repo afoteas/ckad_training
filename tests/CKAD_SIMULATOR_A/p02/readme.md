@@ -22,12 +22,9 @@ Finally, write a `kubectl` command into file `/course/p2/sunny_status_command.sh
 ```bash
 ➜ ssh ckad9043
 
-
 ➜ candidate@ckad9043:~$ k -n sun create deployment -h #help
 
-
 ➜ candidate@ckad9043:~$ k -n sun create deployment sunny --image=nginx:1-alpine --replicas=4 --dry-run=client -oyaml > p2_sunny.yaml
-
 
 ➜ candidate@ckad9043:~$ vim p2_sunny.yaml
 ```

@@ -1,0 +1,30 @@
+apiVersion: v1
+data:
+  feature_flags: beta,metrics
+  log_level: warn
+  region: eu-west-1
+kind: ConfigMap
+metadata:
+  name: app-settings
+  namespace: settings
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: settings-reader
+  namespace: settings
+spec:
+  volumes:
+    - name: vol
+      configMap:
+        name: app-settings
+  containers:
+    - name: app
+      command: ["/bin/sh", "-c", "sleep infinity"]
+      image: busybox:1.36
+      volumeMounts:
+      - name: vol
+        mountPath: "/etc/app-settings"
+      envFrom:
+        - configMapRef:
+            name: app-settings

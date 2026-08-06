@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-quota
+  namespace: capacity
+spec:
+  hard:
+    pods: "5"
+    requests.cpu: "1"
+    requests.memory: "1Gi"
+    limits.cpu: "2"
+    limits.memory: "2Gi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sizer
+  name: sizer
+  namespace: capacity
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sizer
+  template:
+    metadata:
+      labels:
+        app: sizer
+    spec:
+      containers:
+      - image: nginx:1.25
+        name: nginx
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 400m
+            memory: 256Mi 

@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../kustomize/base
+namePrefix: prod-
+namespace: release
+labels:
+  - pairs:
+      env: prod
+replicas:
+  - name: api
+    count: 4
+images:
+  - name: nginx
+    newTag: "1.27"

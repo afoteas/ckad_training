@@ -1,0 +1,3 @@
+alpha ImagePullBackOff
+beta CrashLoopBackOff
+gamma CreateContainerConfigError

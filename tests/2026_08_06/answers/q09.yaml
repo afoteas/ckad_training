@@ -1,0 +1,33 @@
+apiVersion: v1
+data:
+  password: VHIwdWI0ZG9y
+  username: c3ZjLXBvcnRhbA==
+kind: Secret
+metadata:
+  name: api-creds
+  namespace: settings
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: creds-user
+  name: creds-user
+  namespace: settings
+spec:
+  automountServiceAccountToken: false
+  containers:
+  - image: nginx:1.25
+    name: creds-user
+    env:
+      - name: APP_USER
+        valueFrom:
+          secretKeyRef:
+            name: api-creds
+            key: username
+      - name: APP_PASS
+        valueFrom:
+          secretKeyRef:
+            name: api-creds
+            key: password
+  restartPolicy: Always

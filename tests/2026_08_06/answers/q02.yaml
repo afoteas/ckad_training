@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: audit-stream
+  name: audit-stream
+  namespace: batch
+spec:
+  volumes:
+    - name: vol
+      emptyDir: {}
+  initContainers:
+  - command:
+    - sh
+    - -c
+    - tail -F /var/log/audit/trail.log
+    image: busybox:1.36
+    name: shipper
+    restartPolicy: Always
+    volumeMounts:
+      - name: vol
+        mountPath: /var/log/audit
+  containers:
+  - command:
+    - sh
+    - -c
+    - while true; do date >> /var/log/audit/trail.log ; sleep 1; done
+    image: busybox:1.36
+    name: app
+    volumeMounts:
+      - name: vol
+        mountPath: /var/log/audit
+  restartPolicy: Never

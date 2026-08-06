@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: archive-pv
+  namespace: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /mnt/archive
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archive-pvc
+  namespace: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  volumeName: archive-pv
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: archive-writer
+  name: archive-writer
+  namespace: storage
+spec:
+  volumes:
+  - name: vol
+    persistentVolumeClaim:
+      claimName: archive-pvc
+#    hostPath:
+#      path: /mnt/archive
+  containers:
+  - args:
+    - sleep
+    - "infinity"
+    image: busybox:1.36
+    name: archive-writer
+    volumeMounts:
+    - name: vol
+      mountPath: /var/archive
+  restartPolicy: Never

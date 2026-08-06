@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: vault-agent
+  name: vault-agent
+  namespace: hardened
+spec:
+  securityContext:
+    runAsUser: 3000
+    runAsGroup: 4000
+    fsGroup: 5000
+  containers:
+  - image: busybox:1.36
+    name: vault-agent
+    command: [ sh, -c, "sleep infinity" ]
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: vol
+        mountPath: /data
+  volumes:
+    - name: vol
+      emptyDir: {}
+
+  restartPolicy: Always
